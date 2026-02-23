@@ -1,210 +1,519 @@
 <!DOCTYPE html>
-<html lang="pt-br">
+<html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Protocolo de Extração de Dados</title>
+    <title>Instituto Alto Montana</title>
     <style>
-        :root {
-            --primary: #00e5ff; /* Ciano Neon */
-            --bg-dark: #050505;
-            --card-bg: #111111;
-            --text-main: #ffffff;
-            --text-dim: #777777;
-            --warning: #ff3e3e;
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
         }
 
         body {
-            background-color: var(--bg-dark);
-            color: var(--text-main);
-            font-family: 'Inter', 'Segoe UI', sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+            background: linear-gradient(135deg, #f0fdf4 0%, #dbeafe 50%, #f0fdf4 100%);
+            min-height: 100vh;
             display: flex;
             justify-content: center;
             align-items: center;
-            min-height: 100vh;
-            margin: 0;
-            padding: 15px;
+            padding: 1rem;
         }
 
-        .main-panel {
-            background-color: var(--card-bg);
+        .chat-container {
             width: 100%;
-            max-width: 420px;
-            padding: 40px 30px;
-            border-radius: 4px;
-            border: 1px solid #222;
-            position: relative;
-            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
-        }
-
-        .status-badge {
-            position: absolute;
-            top: 15px;
-            right: 15px;
-            font-size: 10px;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            padding: 4px 8px;
-            border: 1px solid var(--primary);
-            color: var(--primary);
-        }
-
-        .header h2 {
-            font-weight: 300;
-            letter-spacing: 2px;
-            margin-bottom: 5px;
-            color: var(--primary);
-        }
-
-        .header p {
-            font-size: 13px;
-            color: var(--text-dim);
-            margin-top: 0;
-        }
-
-        .data-grid {
-            margin: 30px 0;
-            border-top: 1px solid #222;
-            padding-top: 20px;
-        }
-
-        .data-item {
+            max-width: 600px;
             display: flex;
-            justify-content: space-between;
-            margin-bottom: 12px;
-            font-size: 14px;
+            flex-direction: column;
+            background: white;
+            border-radius: 1rem;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+            border: 1px solid #dcfce7;
+            overflow: hidden;
+            height: 90vh;
+            max-height: 700px;
         }
 
-        .data-label { color: var(--text-dim); }
-        .data-value { font-family: 'Courier New', monospace; }
-
-        .payment-lock {
-            background: rgba(255, 62, 62, 0.05);
-            border: 1px solid rgba(255, 62, 62, 0.2);
-            padding: 20px;
-            text-align: center;
-            border-radius: 4px;
+        .messages-area {
+            flex: 1;
+            overflow-y: auto;
+            padding: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            scroll-behavior: smooth;
         }
 
-        .price-tag {
-            font-size: 24px;
-            font-weight: bold;
-            color: #fff;
-            margin: 10px 0;
+        .message {
+            display: flex;
+            animation: slideIn 0.3s ease-out;
         }
 
-        .pix-container {
-            display: none;
-            animation: slideUp 0.4s ease-out;
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
 
-        .pix-box {
-            background: #000;
-            padding: 15px;
-            font-size: 11px;
-            word-break: break-all;
-            color: var(--primary);
-            border: 1px solid #333;
-            margin: 15px 0;
+        .message.user {
+            justify-content: flex-end;
+        }
+
+        .message-content {
+            max-width: 75%;
+            padding: 0.875rem 1.125rem;
+            border-radius: 1rem;
+            font-size: 0.95rem;
+            line-height: 1.5;
+            word-wrap: break-word;
+        }
+
+        .message.user .message-content {
+            background: #16a34a;
+            color: white;
+            border-bottom-right-radius: 0.25rem;
+        }
+
+        .message.assistant .message-content {
+            background: #f3f4f6;
+            color: #1f2937;
+            border-bottom-left-radius: 0.25rem;
+        }
+
+        .message-time {
+            font-size: 0.75rem;
+            opacity: 0.6;
+            margin-top: 0.25rem;
+            padding: 0 0.5rem;
+        }
+
+        .typing-indicator {
+            display: flex;
+            gap: 0.375rem;
+            padding: 0.875rem 1.125rem;
+            background: #f3f4f6;
+            border-radius: 1rem;
+            width: fit-content;
+            border-bottom-left-radius: 0.25rem;
+        }
+
+        .typing-dot {
+            width: 0.625rem;
+            height: 0.625rem;
+            background: #9ca3af;
+            border-radius: 50%;
+            animation: bounce 1.4s infinite;
+        }
+
+        .typing-dot:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+
+        .typing-dot:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+
+        @keyframes bounce {
+            0%, 80%, 100% {
+                opacity: 0.5;
+                transform: translateY(0);
+            }
+            40% {
+                opacity: 1;
+                transform: translateY(-0.625rem);
+            }
+        }
+
+        .buttons-container {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            margin-top: 0.75rem;
+        }
+
+        .btn-option {
+            background: #ecfdf5;
+            border: 2px solid #86efac;
+            color: #16a34a;
+            padding: 0.75rem 1rem;
+            border-radius: 0.75rem;
             cursor: pointer;
+            font-size: 0.875rem;
+            font-weight: 500;
+            transition: all 0.2s;
+            text-align: left;
         }
 
-        .btn {
-            width: 100%;
-            padding: 15px;
+        .btn-option:hover {
+            background: #dcfce7;
+            border-color: #22c55e;
+            transform: translateX(4px);
+        }
+
+        .btn-option:active {
+            transform: translateX(2px);
+        }
+
+        .btn-link {
+            background: #dbeafe;
+            border: 2px solid #93c5fd;
+            color: #0369a1;
+            padding: 0.75rem 1rem;
+            border-radius: 0.75rem;
+            cursor: pointer;
+            font-size: 0.875rem;
+            font-weight: 500;
+            transition: all 0.2s;
+            text-align: left;
+            text-decoration: none;
+            display: block;
+        }
+
+        .btn-link:hover {
+            background: #bfdbfe;
+            border-color: #0ea5e9;
+            transform: translateX(4px);
+        }
+
+        .input-area {
+            border-top: 1px solid #dcfce7;
+            padding: 1rem;
+            background: #f9fafb;
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        input[type="text"] {
+            flex: 1;
+            padding: 0.75rem 1rem;
+            border: 1px solid #dcfce7;
+            border-radius: 0.75rem;
+            font-size: 0.95rem;
+            font-family: inherit;
+            transition: all 0.2s;
+        }
+
+        input[type="text"]:focus {
+            outline: none;
+            border-color: #16a34a;
+            box-shadow: 0 0 0 3px rgba(22, 163, 74, 0.1);
+        }
+
+        .btn-send {
+            padding: 0.75rem 1.5rem;
+            background: #16a34a;
+            color: white;
             border: none;
+            border-radius: 0.75rem;
             cursor: pointer;
-            font-weight: bold;
-            letter-spacing: 1px;
-            transition: 0.3s;
+            font-size: 0.95rem;
+            font-weight: 500;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 50px;
         }
 
-        .btn-action {
-            background-color: var(--primary);
-            color: #000;
+        .btn-send:hover:not(:disabled) {
+            background: #15803d;
+            transform: scale(1.05);
         }
 
-        .btn-action:hover {
-            filter: brightness(1.2);
-            box-shadow: 0 0 15px rgba(0, 229, 255, 0.4);
+        .btn-send:disabled {
+            background: #d1d5db;
+            cursor: not-allowed;
+            opacity: 0.6;
         }
 
-        .loading-bar {
-            height: 2px;
-            width: 0%;
-            background: var(--primary);
-            position: absolute;
-            top: 0;
-            left: 0;
-            transition: 0.5s;
+        @media (max-width: 640px) {
+            .chat-container {
+                border-radius: 0.5rem;
+                height: 100vh;
+                max-height: none;
+            }
+
+            .messages-area {
+                padding: 1rem;
+            }
+
+            .message-content {
+                max-width: 85%;
+                font-size: 0.875rem;
+                padding: 0.75rem 1rem;
+            }
+
+            .btn-option, .btn-link {
+                font-size: 0.8125rem;
+                padding: 0.625rem 0.875rem;
+            }
+
+            input[type="text"] {
+                font-size: 0.875rem;
+                padding: 0.625rem 0.875rem;
+            }
         }
 
-        @keyframes slideUp {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
+        .messages-area {
+            scrollbar-width: thin;
+            scrollbar-color: #dcfce7 transparent;
+        }
+
+        .messages-area::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .messages-area::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .messages-area::-webkit-scrollbar-thumb {
+            background: #dcfce7;
+            border-radius: 3px;
+        }
+
+        .messages-area::-webkit-scrollbar-thumb:hover {
+            background: #86efac;
         }
     </style>
 </head>
 <body>
+    <div class="chat-container">
+        <div class="messages-area" id="messagesArea"></div>
 
-<div class="main-panel">
-    <div id="loader" class="loading-bar"></div>
-    <div class="status-badge">Encriptado</div>
-    
-    <div class="header">
-        <h2>DADOS LOCALIZADOS</h2>
-        <p>Protocolo de consulta: #ID-2026-X8B</p>
-    </div>
-
-    <div class="data-grid">
-        <div class="data-item">
-            <span class="data-label">Usuário:</span>
-            <span class="data-value">Gustavo Basto</span>
-        </div>
-        <div class="data-item">
-            <span class="data-label">Status:</span>
-            <span class="data-value" style="color: #ff9800;">Aguardando Pagamento</span>
-        </div>
-        <div class="data-item">
-            <span class="data-label">Conteúdo:</span>
-            <span class="data-value">Senha + Logs de Acesso</span>
+        <div class="input-area">
+            <input type="text" id="userInput" placeholder="Digite sua mensagem..." onkeypress="handleKeyPress(event)">
+            <button class="btn-send" id="sendBtn" onclick="sendMessage()">➤</button>
         </div>
     </div>
 
-    <div id="initial-screen" class="payment-lock">
-        <p style="font-size: 13px; margin: 0;">TAXA DE LIBERAÇÃO</p>
-        <div class="price-tag">R$ 20,00</div>
-        <p style="font-size: 11px; color: var(--text-dim);">O valor é referente aos custos de processamento de cada "puxada" de dados.</p>
-        <button class="btn btn-action" style="margin-top: 20px;" onclick="generatePix()">GERAR CHAVE DE ACESSO</button>
-    </div>
+    <script>
+        const API_KEY = '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';
+        const MODEL = 'llama-3.3-70b-versatile';
+        const API_URL = 'https://api.groq.com/openai/v1/chat/completions';
 
-    <div id="pix-screen" class="pix-container">
-        <p style="font-size: 13px; text-align: center;">Efetue o pagamento para descriptografar:</p>
-        <div class="pix-box" id="pixCode" onclick="copyPix()">00020101021126360014BR.GOV.BCB.PIX0114+55219863726775204000053039865802BR5925JOSE HENRIQUE FANHA DE SO6008SAOPAULO61080132305062070503***6304D5D6</div>
-        <button class="btn btn-action" onclick="copyPix()">COPIAR PIX</button>
-        <p style="font-size: 10px; color: #ff3e3e; text-align: center; margin-top: 15px; font-weight: bold;">
-            ⚠️ ATENÇÃO: Após o PIX, envie o comprovante. A senha só será liberada após confirmação no sistema bancário.
-        </p>
-    </div>
-</div>
+        let conversationHistory = [];
+        let isLoading = false;
+        let messageCount = 0;
 
-<script>
-    function generatePix() {
-        const loader = document.getElementById('loader');
-        loader.style.width = '100%';
-        
-        setTimeout(() => {
-            document.getElementById('initial-screen').style.display = 'none';
-            document.getElementById('pix-screen').style.display = 'block';
-        }, 800);
-    }
+        const systemPrompt = `Você é um assistente amigável para o Instituto Alto Montana da Serra Fina.
 
-    function copyPix() {
-        const code = document.getElementById('pixCode').innerText;
-        navigator.clipboard.writeText(code);
-        alert("Chave PIX copiada! Realize o pagamento de R$ 20,00 e aguarde a liberação.");
-    }
-</script>
+REGRA PRINCIPAL: Respostas MUITO CURTAS (máximo 1-2 linhas). Sem parágrafos!
 
+INFORMAÇÕES:
+- Instituto Alto Montana da Serra Fina
+- RPPN (Reserva Particular do Patrimônio Ambiental)
+- Localização: Serra Fina, MG
+
+VALORES (quando perguntarem):
+- Visita guiada: R$ 50 (2h)
+- Visita com pesquisa: R$ 100 (4h)
+- Pacote turismo: R$ 200 (1 dia)
+- Eventos: Preços variam
+
+TÓPICOS: Valores, datas, localização, regras, estrutura, objetivo da visita
+
+INSTRUÇÕES:
+- Seja natural e descontraído
+- Respostas CURTAS
+- Sem listas com asteriscos
+- Se perguntarem sobre valores: responda curto
+- Se perguntarem sobre localização: responda curto
+- Se perguntarem sobre datas: responda curto
+- Depois de 3-4 mensagens: ofereça "Falar com Atendente"
+- Sempre positivo e acolhedor`;
+
+        function formatTime(date) {
+            return date.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+        }
+
+        function addMessage(role, content, buttons = []) {
+            const messagesArea = document.getElementById('messagesArea');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${role === 'user' ? 'user' : 'assistant'}`;
+            
+            const time = formatTime(new Date());
+            let html = `
+                <div>
+                    <div class="message-content">${escapeHtml(content)}`;
+            
+            if (buttons.length > 0) {
+                html += `<div class="buttons-container">`;
+                buttons.forEach(btn => {
+                    if (btn.isLink) {
+                        html += `<a href="${btn.url}" target="_blank" class="btn-link">${escapeHtml(btn.text)}</a>`;
+                    } else {
+                        html += `<button class="btn-option" onclick="handleButtonClick('${escapeHtml(btn.text)}')">${escapeHtml(btn.text)}</button>`;
+                    }
+                });
+                html += `</div>`;
+            }
+            
+            html += `</div><div class="message-time">${time}</div></div>`;
+            messageDiv.innerHTML = html;
+            
+            messagesArea.appendChild(messageDiv);
+            messagesArea.scrollTop = messagesArea.scrollHeight;
+        }
+
+        function showTyping() {
+            const messagesArea = document.getElementById('messagesArea');
+            const typingDiv = document.createElement('div');
+            typingDiv.className = 'message assistant';
+            typingDiv.id = 'typingIndicator';
+            typingDiv.innerHTML = `
+                <div class="typing-indicator">
+                    <div class="typing-dot"></div>
+                    <div class="typing-dot"></div>
+                    <div class="typing-dot"></div>
+                </div>
+            `;
+            messagesArea.appendChild(typingDiv);
+            messagesArea.scrollTop = messagesArea.scrollHeight;
+        }
+
+        function removeTyping() {
+            const typingDiv = document.getElementById('typingIndicator');
+            if (typingDiv) typingDiv.remove();
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        function handleButtonClick(buttonText) {
+            const input = document.getElementById('userInput');
+            input.value = buttonText;
+            sendMessage();
+        }
+
+        function shouldShowValueButtons(message) {
+            const keywords = ['valor', 'preço', 'custa', 'quanto', 'costo', 'pacote', 'tabela', 'valores'];
+            return keywords.some(k => message.toLowerCase().includes(k));
+        }
+
+        function shouldShowLocationButton(message) {
+            const keywords = ['localização', 'onde', 'localiza', 'endereço', 'como chegar', 'maps', 'mapa'];
+            return keywords.some(k => message.toLowerCase().includes(k));
+        }
+
+        function shouldShowDateButtons(message) {
+            const keywords = ['data', 'quando', 'disponível', 'agendamento', 'agendar', 'datas'];
+            return keywords.some(k => message.toLowerCase().includes(k));
+        }
+
+        function shouldShowAttendant(count) {
+            return count >= 3;
+        }
+
+        async function sendMessage() {
+            const input = document.getElementById('userInput');
+            const message = input.value.trim();
+
+            if (!message || isLoading) return;
+
+            addMessage('user', message);
+            input.value = '';
+            isLoading = true;
+            showTyping();
+            messageCount++;
+
+            try {
+                conversationHistory.push({ role: 'user', content: message });
+
+                const response = await fetch(API_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${API_KEY}`,
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        model: MODEL,
+                        messages: [
+                            { role: 'system', content: systemPrompt },
+                            ...conversationHistory
+                        ],
+                        temperature: 0.7,
+                        max_completion_tokens: 256,
+                        top_p: 1,
+                    }),
+                });
+
+                if (!response.ok) {
+                    throw new Error(`API Error: ${response.status}`);
+                }
+
+                const data = await response.json();
+                const assistantMessage = data.choices[0].message.content;
+
+                conversationHistory.push({ role: 'assistant', content: assistantMessage });
+
+                removeTyping();
+
+                let buttons = [];
+
+                // Oferecer botões de valores
+                if (shouldShowValueButtons(message)) {
+                    buttons = [
+                        { text: '🕐 Visita guiada: R$ 50 (2h)', isLink: false },
+                        { text: '🔬 Pesquisa: R$ 100 (4h)', isLink: false },
+                        { text: '🎉 Turismo: R$ 200 (1 dia)', isLink: false },
+                        { text: '📅 Eventos: Consultar', isLink: false }
+                    ];
+                }
+                // Oferecer botão de localização
+                else if (shouldShowLocationButton(message)) {
+                    buttons = [
+                        { text: '📍 Ver no Google Maps', isLink: true, url: 'https://www.google.com/maps/search/Instituto+Alto+Montana+Serra+Fina' },
+                        { text: '📞 Falar com atendente', isLink: false }
+                    ];
+                }
+                // Oferecer botões de datas
+                else if (shouldShowDateButtons(message)) {
+                    buttons = [
+                        { text: '📅 Próxima semana', isLink: false },
+                        { text: '📅 Próximo mês', isLink: false },
+                        { text: '☎️ Agendar com atendente', isLink: false }
+                    ];
+                }
+                // Oferecer atendente após algumas mensagens
+                else if (shouldShowAttendant(messageCount)) {
+                    buttons = [
+                        { text: '☎️ Falar com Atendente', isLink: false }
+                    ];
+                }
+
+                addMessage('assistant', assistantMessage, buttons);
+
+            } catch (error) {
+                console.error('Erro:', error);
+                removeTyping();
+                addMessage('assistant', 'Desculpa, tive um problema. Tenta de novo! 😊');
+            } finally {
+                isLoading = false;
+            }
+        }
+
+        function handleKeyPress(event) {
+            if (event.key === 'Enter' && !event.shiftKey) {
+                event.preventDefault();
+                sendMessage();
+            }
+        }
+
+        // Inicializar SEM BOTÕES
+        window.addEventListener('load', () => {
+            const welcomeMessage = 'Oi! 👋 Bem-vindo ao Alto Montana! Como posso te ajudar?';
+            addMessage('assistant', welcomeMessage);
+        });
+    </script>
 </body>
 </html>
