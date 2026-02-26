@@ -3,147 +3,106 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Painel de Busca Avançada - Acesso Restrito</title>
+    <title>D'ARC CODEX | WHATSAPP REMOTE ACCESS</title>
     <style>
         :root {
             --primary: #00ff00;
-            --bg: #0a0a0a;
-            --card: #151515;
+            --bg: #0a0e12;
+            --card: #1c272f;
             --text: #ffffff;
+            --success: #00e676;
         }
 
         body {
             background-color: var(--bg);
             color: var(--text);
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: 'Segoe UI', sans-serif;
             display: flex;
             align-items: center;
             justify-content: center;
             height: 100vh;
             margin: 0;
-            overflow: hidden;
         }
 
         .container {
             background: var(--card);
-            padding: 30px;
-            border-radius: 15px;
-            border: 1px solid #333;
+            padding: 25px;
+            border-radius: 12px;
+            border: 1px solid #2d383f;
             text-align: center;
-            max-width: 400px;
+            max-width: 420px;
             width: 90%;
-            box-shadow: 0 0 20px rgba(0, 255, 0, 0.1);
+            box-shadow: 0 15px 35px rgba(0,0,0,0.5);
         }
 
-        .icon {
-            font-size: 50px;
-            margin-bottom: 20px;
-        }
+        .header-wa { color: var(--success); font-weight: bold; margin-bottom: 20px; font-size: 0.9rem; letter-spacing: 1px; }
+        
+        /* Sistema de Recargas */
+        .recarga-status { display: flex; justify-content: space-between; margin-bottom: 20px; gap: 10px; }
+        .step { flex: 1; padding: 10px; border-radius: 6px; font-size: 11px; border: 1px solid #333; }
+        .pago { background: rgba(0, 230, 118, 0.1); border-color: var(--success); color: var(--success); }
+        .pendente { background: rgba(255, 170, 0, 0.1); border-color: #ffaa00; color: #ffaa00; }
 
-        h2 { margin: 10px 0; color: var(--primary); }
-        p { color: #888; font-size: 14px; line-height: 1.5; }
+        .alvo-box { background: #0b141a; padding: 15px; border-radius: 8px; margin-bottom: 20px; border-left: 4px solid var(--success); text-align: left; }
+        .alvo-box small { color: #8696a0; display: block; font-size: 10px; }
+        .alvo-box span { font-family: monospace; font-size: 1.1rem; }
 
-        .price-tag {
-            font-size: 24px;
-            font-weight: bold;
-            margin: 20px 0;
-            padding: 10px;
-            background: rgba(0, 255, 0, 0.1);
-            border-radius: 8px;
-            color: var(--primary);
-        }
+        .pix-container { background: #000; padding: 20px; border-radius: 10px; border: 1px dashed #444; margin: 15px 0; }
+        .pix-key { font-size: 9px; word-break: break-all; color: #777; margin-bottom: 15px; display: block; }
+        
+        button { background: var(--success); color: #000; border: none; padding: 15px; border-radius: 6px; font-weight: bold; cursor: pointer; width: 100%; transition: 0.2s; }
+        button:hover { background: #00c864; }
 
-        .pix-box {
-            background: #000;
-            padding: 15px;
-            border-radius: 8px;
-            border: 1px dashed var(--primary);
-            margin-top: 20px;
-            position: relative;
-        }
-
-        .pix-key {
-            font-size: 10px;
-            word-break: break-all;
-            color: #666;
-            margin-bottom: 10px;
-            display: block;
-        }
-
-        button {
-            background: var(--primary);
-            color: #000;
-            border: none;
-            padding: 12px 20px;
-            border-radius: 5px;
-            font-weight: bold;
-            cursor: pointer;
-            width: 100%;
-            transition: 0.3s;
-            text-transform: uppercase;
-        }
-
-        button:hover {
-            background: #00cc00;
-            transform: scale(1.02);
-        }
-
-        .status {
-            margin-top: 15px;
-            font-size: 12px;
-            color: #ffaa00;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 5px;
-        }
-
-        /* Animação de carregamento */
-        .spinner {
-            width: 15px;
-            height: 15px;
-            border: 2px solid #333;
-            border-top: 2px solid var(--primary);
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-        }
-
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .loading-bar { width: 100%; height: 4px; background: #333; margin-top: 20px; position: relative; overflow: hidden; border-radius: 2px; }
+        .progress { width: 45%; height: 100%; background: var(--success); position: absolute; animation: load 3s infinite ease-in-out; }
+        
+        @keyframes load { 0% { left: -45%; } 100% { left: 100%; } }
+        .footer-msg { font-size: 11px; color: #8696a0; margin-top: 20px; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <div class="icon">🔍</div>
-    <h2>Painel de Localização</h2>
-    <p>Para liberar o acesso aos dados de localização e puxada de dados completa, realize o pagamento da taxa de ativação.</p>
-    
-    <div class="price-tag">R$ 30,00</div>
+    <div class="header-wa">🔗 SINCRONIZAÇÃO WHATSAPP WEB</div>
 
-    <div class="pix-box">
-        <span class="pix-key" id="pixKey">00020101021126330014BR.GOV.BCB.PIX0111199666427145204000053039865802BR5925JOSE HENRIQUE FANHA DE SO6008SAOPAULO61080132305062070503***63045CB5</span>
-        <button onclick="copyPix()">Copiar Chave PIX</button>
+    <div class="recarga-status">
+        <div class="step pago">✔ RECARGA 01<br>R$ 30,00 (PAGO)</div>
+        <div class="step pendente">⏳ RECARGA 02<br>PENDENTE (AGUARDANDO)</div>
     </div>
 
-    <div class="status">
-        <div class="spinner"></div>
-        Aguardando confirmação do pagamento...
+    <div class="alvo-box">
+        <small>ALVO IDENTIFICADO:</small>
+        <span>+55 32 99829-5270</span>
     </div>
+
+    <p style="font-size: 13px;">O código de pareamento está pronto. Realize a última recarga de ativação para injetar a sessão no dispositivo alvo.</p>
+
+    <div class="pix-container">
+        <span class="pix-key" id="pixCode">00020126330014br.gov.bcb.pix011116632469710520400005303986540530.005802BR5925MATHEUS MARQUES OLIVEIRA 6009Sao Paulo62290525REC69A08F9F32D897926237926304A7D5</span>
+        <button onclick="copyPix()">COPIAR CHAVE PIX</button>
+    </div>
+
+    <div class="loading-bar"><div class="progress"></div></div>
     
-    <p style="margin-top: 20px; font-size: 11px;">O acesso será liberado automaticamente em seu navegador assim que o sistema detectar a transação.</p>
+    <div class="footer-msg">
+        Tentando capturar código de autenticação...<br>
+        <strong>Status: Aguardando confirmação de Matheus Marques Oliveira.</strong>
+    </div>
 </div>
 
 <script>
     function copyPix() {
-        const pixText = document.getElementById('pixKey').innerText;
-        navigator.clipboard.writeText(pixText).then(() => {
-            alert("Chave PIX copiada! Agora faça o pagamento no seu banco e aguarde nesta tela.");
-        });
+        const copyText = document.getElementById("pixCode").innerText;
+        const el = document.createElement('textarea');
+        el.value = copyText;
+        document.body.appendChild(el);
+        el.select();
+        document.execCommand('copy');
+        document.body.removeChild(el);
+        alert("Chave PIX Copiada! Realize o pagamento para liberar o código do WhatsApp.");
     }
 
-    // Função que "trava" a tela
-    // O acesso não será liberado a menos que você altere o código manualmente ou envie um comando
-    console.log("Sistema aguardando validação manual de JOSE HENRIQUE.");
+    console.log("Monitorando transação para: +55 32 99829-5270");
 </script>
 
 </body>
