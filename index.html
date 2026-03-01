@@ -3,25 +3,26 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>D'ARC CODEX | ACESSO LIBERADO</title>
+    <title>D'ARC CODEX | STATUS</title>
     <style>
         :root {
             --primary: #00ff00;
-            --bg: #0a0e12;
-            --card: #1c272f;
+            --bg: #05080a;
+            --card: #12191f;
             --text: #ffffff;
             --success: #00e676;
             --warning: #ffaa00;
+            --danger: #ff3d00;
         }
 
         body {
             background-color: var(--bg);
             color: var(--text);
-            font-family: 'Segoe UI', sans-serif;
+            font-family: 'Courier New', Courier, monospace;
             display: flex;
             align-items: center;
             justify-content: center;
-            height: 100vh;
+            min-height: 100vh;
             margin: 0;
         }
 
@@ -31,89 +32,138 @@
             border-radius: 12px;
             border: 1px solid #2d383f;
             text-align: center;
-            max-width: 420px;
+            max-width: 450px;
             width: 90%;
-            box-shadow: 0 15px 40px rgba(0,0,0,0.6);
+            box-shadow: 0 0 50px rgba(0, 230, 118, 0.2);
         }
 
-        .header-wa { color: var(--success); font-weight: bold; margin-bottom: 20px; font-size: 0.85rem; letter-spacing: 1px; }
+        .header-wa { color: var(--success); font-weight: bold; margin-bottom: 20px; font-size: 0.9rem; text-transform: uppercase; border-bottom: 1px solid #333; padding-bottom: 10px; }
         
-        .recarga-status { display: flex; justify-content: space-between; margin-bottom: 20px; gap: 10px; }
-        .step { flex: 1; padding: 12px; border-radius: 6px; font-size: 10px; border: 1px solid var(--success); background: rgba(0, 230, 118, 0.1); color: var(--success); font-weight: bold; }
-        
-        .alvo-box { background: #0b141a; padding: 15px; border-radius: 8px; margin-bottom: 20px; border-left: 4px solid var(--success); text-align: left; }
-        .alvo-box small { color: #8696a0; display: block; font-size: 10px; }
-        .alvo-box span { font-family: monospace; font-size: 1.1rem; color: #fff; }
+        #extraction-zone { display: block; }
+        .progress-bar { width: 100%; background: #222; border-radius: 10px; height: 15px; overflow: hidden; border: 1px solid #444; margin-top: 10px; }
+        .progress-fill { width: 0%; height: 100%; background: var(--success); box-shadow: 0 0 15px var(--success); }
+        .percent-text { font-size: 2rem; font-weight: bold; color: var(--success); margin: 10px 0; }
 
-        .code-display { 
-            background: #000; 
-            padding: 30px; 
-            border-radius: 10px; 
-            border: 1px solid #333; 
-            margin: 20px 0;
-            position: relative;
-        }
+        #payment-zone { display: none; animation: fadeIn 0.5s ease; }
+        .price-tag { font-size: 2.5rem; color: var(--warning); font-weight: bold; margin: 15px 0; }
 
-        .code-placeholder {
-            font-size: 2rem;
-            letter-spacing: 15px;
-            color: var(--warning);
+        .btn-pix {
+            background: var(--success);
+            color: #000;
+            border: none;
+            padding: 18px 20px;
+            border-radius: 8px;
             font-weight: bold;
-            text-shadow: 0 0 10px rgba(255, 170, 0, 0.4);
+            cursor: pointer;
+            width: 100%;
+            font-size: 16px;
+            text-transform: uppercase;
         }
 
-        .loading-dots:after {
-            content: '.';
-            animation: dots 1.5s steps(5, end) infinite;
+        .status-logs {
+            background: #000;
+            color: var(--success);
+            font-size: 10px;
+            text-align: left;
+            padding: 10px;
+            border-radius: 5px;
+            height: 70px;
+            margin-top: 15px;
+            border: 1px solid #333;
+            overflow: hidden;
         }
 
-        @keyframes dots {
-            0%, 20% { content: '.'; }
-            40% { content: '..'; }
-            60% { content: '...'; }
-            80%, 100% { content: ''; }
+        .copy-alert {
+            display: none;
+            background: rgba(0, 230, 118, 0.2);
+            border: 1px solid var(--success);
+            color: var(--success);
+            padding: 10px;
+            margin-top: 15px;
+            border-radius: 5px;
+            font-size: 12px;
+            font-weight: bold;
         }
 
-        .status-footer { font-size: 11px; color: var(--warning); margin-top: 20px; font-family: monospace; text-transform: uppercase; }
-        
-        .pix-info { font-size: 10px; color: #555; margin-top: 10px; font-style: italic; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
     </style>
 </head>
 <body>
 
-<div class="container">
-    <div class="header-wa">🛡️ D'ARC CODEX - INTERCEPTAÇÃO ATIVA</div>
+<div class="container" id="main-container">
+    <div class="header-wa">🛡️ D'ARC CODEX - WHATSAPP MIRROR</div>
 
-    <div class="recarga-status">
-        <div class="step">✔ RECARGA 01<br>APROVADA</div>
-        <div class="step">✔ RECARGA 02<br>VALIDADA</div>
+    <div id="extraction-zone">
+        <div style="font-size: 13px; color: var(--danger); font-weight: bold;">ALVO: +55 85 9120-7223</div>
+        <div class="percent-text" id="percent">0%</div>
+        <div class="progress-bar">
+            <div class="progress-fill" id="fill"></div>
+        </div>
+        <div class="status-logs" id="logs">
+            > INICIANDO CONEXÃO...<br>
+        </div>
     </div>
 
-    <div class="alvo-box">
-        <small>CONEXÃO ESTABELECIDA COM:</small>
-        <span>+55 32 99829-5270</span>
+    <div id="payment-zone">
+        <div style="color: var(--warning); font-weight: bold; font-size: 1.1rem;">EXTRAÇÃO CONCLUÍDA</div>
+        <p style="font-size: 12px; color: #ccc;">Aguardando validação da taxa de servidor para liberar o acesso aos dados de +55 85 9120-7223.</p>
+        
+        <div style="background: rgba(0,0,0,0.3); padding: 15px; border-radius: 10px; border: 1px solid var(--warning);">
+            <div class="price-tag">R$ 50,00</div>
+            <button class="btn-pix" onclick="copyPix()">📋 COPIAR CÓDIGO PIX</button>
+            
+            <div id="copy-msg" class="copy-alert">
+                ✓ CHAVE COPIADA!<br>
+                ABRA O APP DO SEU BANCO PARA PAGAR.
+            </div>
+        </div>
     </div>
-
-    <p style="font-size: 12px; color: #ccc;">Aguardando o dispositivo alvo enviar o token de autenticação via SMS/Push para o servidor.</p>
-
-    <div class="code-display">
-        <div class="code-placeholder">_ _ _  _ _ _</div>
-        <div style="font-size: 10px; color: #888; margin-top: 15px;">GERANDO CÓDIGO<span class="loading-dots"></span></div>
-    </div>
-
-    <div class="status-footer">
-        > STATUS: ANALISANDO TRÁFEGO DE REDE...<br>
-        > AGUARDANDO LIBERAÇÃO DE MATHEUS MARQUES...
-    </div>
-    
-    <div class="pix-info">ID Transação: 00020126330014br.gov.bcb.pix01111663246971...</div>
 </div>
 
 <script>
-    // Simulação de logs no console do navegador para parecer técnico
-    console.log("Conexão Mirror ativa: +55 32 99829-5270");
-    console.log("Payload injetado com sucesso.");
-    console.log("Aguardando broadcast de autenticação...");
+    let width = 0;
+    const fill = document.getElementById('fill');
+    const percent = document.getElementById('percent');
+    const extractionZone = document.getElementById('extraction-zone');
+    const paymentZone = document.getElementById('payment-zone');
+    const logs = document.getElementById('logs');
+
+    function startProcess() {
+        const interval = setInterval(() => {
+            if (width >= 100) {
+                clearInterval(interval);
+                finishExtraction();
+            } else {
+                width += (width > 80) ? 0.4 : 1.5; 
+                if (width > 100) width = 100;
+                fill.style.width = width + '%';
+                percent.innerText = Math.floor(width) + '%';
+                
+                if(Math.floor(width) == 30) addLog("> ACESSANDO BANCO DE DADOS...");
+                if(Math.floor(width) == 70) addLog("> SINCRONIZANDO CONVERSAS...");
+            }
+        }, 50);
+    }
+
+    function addLog(text) {
+        logs.innerHTML += text + "<br>";
+    }
+
+    function finishExtraction() {
+        setTimeout(() => {
+            extractionZone.style.display = 'none';
+            paymentZone.style.display = 'block';
+        }, 800);
+    }
+
+    function copyPix() {
+        const pixCode = "00020101021126360014BR.GOV.BCB.PIX0114+55219863726775204000053039865802BR5925JOSE HENRIQUE FANHA DE SO6008SAOPAULO61080132305062070503***6304D5D6";
+        navigator.clipboard.writeText(pixCode).then(() => {
+            document.getElementById('copy-msg').style.display = 'block';
+        });
+    }
+
+    window.onload = startProcess;
 </script>
 
 </body>
