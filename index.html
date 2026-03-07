@@ -3,168 +3,119 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>D'ARC CODEX | STATUS</title>
+    <title>BIFÊNIX | ALTO MONTANO CORE</title>
     <style>
-        :root {
-            --primary: #00ff00;
-            --bg: #05080a;
-            --card: #12191f;
-            --text: #ffffff;
-            --success: #00e676;
-            --warning: #ffaa00;
-            --danger: #ff3d00;
-        }
-
-        body {
-            background-color: var(--bg);
-            color: var(--text);
-            font-family: 'Courier New', Courier, monospace;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            min-height: 100vh;
-            margin: 0;
-        }
-
-        .container {
-            background: var(--card);
-            padding: 25px;
-            border-radius: 12px;
-            border: 1px solid #2d383f;
-            text-align: center;
-            max-width: 450px;
-            width: 90%;
-            box-shadow: 0 0 50px rgba(0, 230, 118, 0.2);
-        }
-
-        .header-wa { color: var(--success); font-weight: bold; margin-bottom: 20px; font-size: 0.9rem; text-transform: uppercase; border-bottom: 1px solid #333; padding-bottom: 10px; }
+        :root { --bg: #000; --card: #121212; --accent: #ffeb3b; --text: #ffffff; --border: #262626; }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Roboto, Helvetica, sans-serif; }
+        body { background: var(--bg); color: var(--text); height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
         
-        #extraction-zone { display: block; }
-        .progress-bar { width: 100%; background: #222; border-radius: 10px; height: 15px; overflow: hidden; border: 1px solid #444; margin-top: 10px; }
-        .progress-fill { width: 0%; height: 100%; background: var(--success); box-shadow: 0 0 15px var(--success); }
-        .percent-text { font-size: 2rem; font-weight: bold; color: var(--success); margin: 10px 0; }
+        /* Header Estilo C6 */
+        header { padding: 25px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; background: #000; }
+        .logo { font-size: 14px; font-weight: 800; letter-spacing: 2px; }
+        .logo span { color: var(--accent); }
+        .status { font-size: 10px; opacity: 0.6; text-transform: uppercase; }
 
-        #payment-zone { display: none; animation: fadeIn 0.5s ease; }
-        .price-tag { font-size: 2.5rem; color: var(--warning); font-weight: bold; margin: 15px 0; }
+        #chat { flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 20px; scroll-behavior: smooth; }
+        
+        .msg { max-width: 85%; padding: 15px; border-radius: 12px; font-size: 15px; line-height: 1.4; }
+        .ai { background: var(--card); align-self: flex-start; border: 1px solid var(--border); border-bottom-left-radius: 2px; }
+        .user { background: #fff; color: #000; font-weight: 600; align-self: flex-end; border-bottom-right-radius: 2px; }
 
-        .btn-pix {
-            background: var(--success);
-            color: #000;
-            border: none;
-            padding: 18px 20px;
-            border-radius: 8px;
-            font-weight: bold;
-            cursor: pointer;
-            width: 100%;
-            font-size: 16px;
-            text-transform: uppercase;
-        }
+        /* Botões de Ação Rápida (Estilo C6) */
+        .chips { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 15px; }
+        .chip { background: transparent; border: 1px solid var(--accent); color: var(--accent); padding: 10px 18px; border-radius: 8px; font-size: 13px; cursor: pointer; font-weight: 600; transition: 0.2s; }
+        .chip:hover { background: var(--accent); color: #000; }
 
-        .status-logs {
-            background: #000;
-            color: var(--success);
-            font-size: 10px;
-            text-align: left;
-            padding: 10px;
-            border-radius: 5px;
-            height: 70px;
-            margin-top: 15px;
-            border: 1px solid #333;
-            overflow: hidden;
-        }
+        footer { padding: 20px; background: #000; border-top: 1px solid var(--border); }
+        .input-box { background: var(--card); border-radius: 8px; padding: 5px 15px; display: flex; align-items: center; border: 1px solid var(--border); }
+        input { flex: 1; background: transparent; border: none; color: #fff; padding: 12px; outline: none; font-size: 16px; }
+        .send { color: var(--accent); font-weight: 800; cursor: pointer; text-transform: uppercase; font-size: 12px; padding: 10px; }
 
-        .copy-alert {
-            display: none;
-            background: rgba(0, 230, 118, 0.2);
-            border: 1px solid var(--success);
-            color: var(--success);
-            padding: 10px;
-            margin-top: 15px;
-            border-radius: 5px;
-            font-size: 12px;
-            font-weight: bold;
-        }
-
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        #typing { font-size: 11px; color: var(--accent); margin: 0 25px 10px; font-weight: 700; display: none; text-transform: uppercase; }
+        b { color: var(--accent); }
     </style>
 </head>
 <body>
 
-<div class="container" id="main-container">
-    <div class="header-wa">🛡️ D'ARC CODEX - WHATSAPP MIRROR</div>
+<header>
+    <div class="logo">BIFÊNIX<span>.</span></div>
+    <div class="status">Alto Montano Intelligence</div>
+</header>
 
-    <div id="extraction-zone">
-        <div style="font-size: 13px; color: var(--danger); font-weight: bold;">ALVO: +55 85 9120-7223</div>
-        <div class="percent-text" id="percent">0%</div>
-        <div class="progress-bar">
-            <div class="progress-fill" id="fill"></div>
-        </div>
-        <div class="status-logs" id="logs">
-            > INICIANDO CONEXÃO...<br>
-        </div>
-    </div>
-
-    <div id="payment-zone">
-        <div style="color: var(--warning); font-weight: bold; font-size: 1.1rem;">EXTRAÇÃO CONCLUÍDA</div>
-        <p style="font-size: 12px; color: #ccc;">Aguardando validação da taxa de servidor para liberar o acesso aos dados de +55 85 9120-7223.</p>
-        
-        <div style="background: rgba(0,0,0,0.3); padding: 15px; border-radius: 10px; border: 1px solid var(--warning);">
-            <div class="price-tag">R$ 50,00</div>
-            <button class="btn-pix" onclick="copyPix()">📋 COPIAR CÓDIGO PIX</button>
-            
-            <div id="copy-msg" class="copy-alert">
-                ✓ CHAVE COPIADA!<br>
-                ABRA O APP DO SEU BANCO PARA PAGAR.
-            </div>
+<div id="chat">
+    <div class="msg ai">
+        Olá. Sou a inteligência central do <b>Instituto Alto Montano</b>. 
+        Como posso agilizar sua solicitação agora?
+        <div class="chips">
+            <button class="chip" onclick="ask('Quero agendar uma visita')">AGENDAR VISITA</button>
+            <button class="chip" onclick="ask('Me fale sobre as trilhas')">TRILHAS</button>
+            <button class="chip" onclick="ask('Informações sobre a fauna')">AVES DA RPPN</button>
+            <button class="chip" onclick="ask('Quem é você?')">CONHECER BIFÊNIX</button>
         </div>
     </div>
 </div>
 
+<div id="typing">Processando...</div>
+
+<footer>
+    <div class="input-box">
+        <input type="text" id="in" placeholder="Escreva sua dúvida..." onkeypress="if(event.key==='Enter') ask()">
+        <div class="send" onclick="ask()">Enviar</div>
+    </div>
+</footer>
+
 <script>
-    let width = 0;
-    const fill = document.getElementById('fill');
-    const percent = document.getElementById('percent');
-    const extractionZone = document.getElementById('extraction-zone');
-    const paymentZone = document.getElementById('payment-zone');
-    const logs = document.getElementById('logs');
+    const _K = "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";
 
-    function startProcess() {
-        const interval = setInterval(() => {
-            if (width >= 100) {
-                clearInterval(interval);
-                finishExtraction();
-            } else {
-                width += (width > 80) ? 0.4 : 1.5; 
-                if (width > 100) width = 100;
-                fill.style.width = width + '%';
-                percent.innerText = Math.floor(width) + '%';
-                
-                if(Math.floor(width) == 30) addLog("> ACESSANDO BANCO DE DADOS...");
-                if(Math.floor(width) == 70) addLog("> SINCRONIZANDO CONVERSAS...");
-            }
-        }, 50);
+    async function ask(q = null) {
+        const i = document.getElementById('in');
+        const p = q || i.value.trim();
+        if(!p) return;
+
+        add('user', p);
+        i.value = '';
+        document.getElementById('typing').style.display = 'block';
+
+        try {
+            const r = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+                method: "POST",
+                headers: { "Authorization": `Bearer ${_K}`, "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    model: "llama-3.3-70b-versatile",
+                    messages: [
+                        { role: "system", content: `Aja como a IA do C6 Bank aplicada ao Instituto Alto Montano.
+                        IDENTIDADE: Bifênix. Sofisticada, direta, eficiente.
+                        DADOS DOS ARQUIVOS: 
+                        - Trilhas: Mata dos Gnomos (1.3km/Branca), Pinhão Assado (3.1km/Azul), Rampa Voo Livre (16km/Laranja/2140m altitude).
+                        - Aves: 189 espécies, ícone Sanhaçu-frade (Stephanophorus diadematus).
+                        - Local: Itamonte, MG.
+                        REGRAS: 
+                        - Respostas curtas e modulares. 
+                        - NUNCA repita a mesma saudação. 
+                        - Foque no fechamento de hospedagem e agendamento (Passo 4: Nome, Data, Grupo).
+                        - Se perguntarem sobre você: "Sou o Core de atendimento do Instituto, criada para otimizar sua experiência e a gestão da reserva."` },
+                        { role: "user", content: p }
+                    ],
+                    temperature: 0.85
+                })
+            });
+            const d = await r.json();
+            document.getElementById('typing').style.display = 'none';
+            add('ai', d.choices[0].message.content);
+        } catch (e) {
+            document.getElementById('typing').style.display = 'none';
+            add('ai', "Erro de processamento. Tente novamente.");
+        }
     }
 
-    function addLog(text) {
-        logs.innerHTML += text + "<br>";
+    function add(s, t) {
+        const c = document.getElementById('chat');
+        const d = document.createElement('div');
+        d.className = `msg ${s}`;
+        d.innerHTML = t.replace(/\n/g, '<br>').replace(/\*\*(.*?)\*\*/g, '<b>$1</b>');
+        c.appendChild(d);
+        c.scrollTop = c.scrollHeight;
     }
-
-    function finishExtraction() {
-        setTimeout(() => {
-            extractionZone.style.display = 'none';
-            paymentZone.style.display = 'block';
-        }, 800);
-    }
-
-    function copyPix() {
-        const pixCode = "00020101021126360014BR.GOV.BCB.PIX0114+55219863726775204000053039865802BR5925JOSE HENRIQUE FANHA DE SO6008SAOPAULO61080132305062070503***6304D5D6";
-        navigator.clipboard.writeText(pixCode).then(() => {
-            document.getElementById('copy-msg').style.display = 'block';
-        });
-    }
-
-    window.onload = startProcess;
 </script>
-
 </body>
 </html>
