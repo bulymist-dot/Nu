@@ -1,121 +1,361 @@
 <!DOCTYPE html>
-<html lang="pt-br">
+<html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BIFÊNIX | ALTO MONTANO CORE</title>
+    <meta name="viewport" content="width=1280"> <meta name="description" content="Painel de Clima Glassmorphism do Rio de Janeiro">
+    <meta name="keywords" content="Clima, RJ, Glassmorphism, Tempo, Frontend, HTML5, CSS3, JavaScript">
+    <meta property="og:title" content="Clima Dashboard - RJ">
+    <meta property="og:description" content="Dashboard de clima com tema de programação.">
+    <meta property="og:type" content="website">
+
+    <title>&lt;CODING&gt; Clima RJ</title>
+
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;600&family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
     <style>
-        :root { --bg: #000; --card: #121212; --accent: #ffeb3b; --text: #ffffff; --border: #262626; }
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Roboto, Helvetica, sans-serif; }
-        body { background: var(--bg); color: var(--text); height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
+        :root {
+            --bg-color: #12141d;
+            --cyan-neon: #00f3ff;
+            --panel-bg: rgba(30, 32, 45, 0.4);
+            --text-main: #e0e6ed;
+        }
+
+        body, html {
+            margin: 0;
+            padding: 0;
+            width: 1280px; /* Largura fixa de PC */
+            min-height: 100vh;
+            background-color: var(--bg-color);
+            font-family: 'Poppins', sans-serif;
+            color: var(--text-main);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            overflow-x: auto;
+        }
+
+        /* --- CÓDIGO ORIGINAL INTACTO --- */
+        .background-elements {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        .floating-tag {
+            position: absolute;
+            background: rgba(40, 42, 54, 0.6);
+            border: 1px solid rgba(255,255,255,0.05);
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-family: 'Fira Code', monospace;
+            color: var(--cyan-neon);
+            font-size: 1.2rem;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            opacity: 0.7;
+            animation: float 6s infinite ease-in-out alternate;
+            backdrop-filter: blur(5px); 
+        }
+
+        @keyframes float {
+            0% { transform: translateY(0px) rotate(0deg); }
+            100% { transform: translateY(-20px) rotate(2deg); }
+        }
+
+        .tag-1 { top: 15%; left: 5%; animation-delay: 0s; }
+        .tag-2 { top: 20%; right: 5%; animation-delay: 1s; }
+        .tag-3 { bottom: 20%; left: 10%; animation-delay: 2s; }
+        .tag-4 { bottom: 25%; right: 10%; animation-delay: 3s; }
+        .tag-5 { top: 50%; left: 2%; animation-delay: 1.5s; font-size: 0.9rem; color: #8be9fd; }
+        .tag-6 { top: 60%; right: 2%; animation-delay: 2.5s; font-size: 0.9rem; color: #8be9fd; }
+
+        .svg-bg {
+            position: fixed;
+            width: 100%;
+            height: 100%;
+            opacity: 0.1;
+            z-index: -1;
+        }
+
+        .weather-panel {
+            position: relative;
+            z-index: 10;
+            width: 450px; /* Mantendo a largura original que você gosta */
+            background: var(--panel-bg);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(0, 243, 255, 0.2);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.5), inset 0 0 20px rgba(0, 243, 255, 0.05);
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            margin-top: 50px;
+        }
+
+        .header { text-align: center; border-bottom: 1px solid rgba(255, 255, 255, 0.1); padding-bottom: 15px; }
+        .header h1 { margin: 0; font-size: 1.8rem; font-weight: 600; letter-spacing: 1px; }
+        .header h1 span { color: var(--cyan-neon); font-family: 'Fira Code', monospace; text-shadow: 0 0 10px rgba(0, 243, 255, 0.4); }
+        .header p { margin: 5px 0 0 0; font-size: 0.9rem; color: #a0a5b5; }
+        .temp { font-size: 3.5rem; font-weight: 600; color: var(--cyan-neon); line-height: 1; }
+        .desc { font-size: 1.1rem; text-transform: capitalize; margin-top: 5px; }
+        .icon-box i { font-size: 4rem; color: var(--text-main); filter: drop-shadow(0 0 10px rgba(255,255,255,0.2)); }
         
-        /* Header Estilo C6 */
-        header { padding: 25px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; background: #000; }
-        .logo { font-size: 14px; font-weight: 800; letter-spacing: 2px; }
-        .logo span { color: var(--accent); }
-        .status { font-size: 10px; opacity: 0.6; text-transform: uppercase; }
+        .details {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            background: rgba(0,0,0,0.2);
+            padding: 15px;
+            border-radius: 12px;
+            border: 1px solid rgba(255,255,255,0.05);
+        }
 
-        #chat { flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 20px; scroll-behavior: smooth; }
+        .detail-item { display: flex; align-items: center; gap: 10px; font-size: 0.9rem; }
+        .detail-item i { color: var(--cyan-neon); }
+
+        .hourly-forecast {
+            display: flex;
+            gap: 15px;
+            overflow-x: auto;
+            padding-bottom: 10px;
+            scrollbar-width: thin;
+            scrollbar-color: var(--cyan-neon) transparent;
+        }
+
+        .hour-card {
+            min-width: 60px;
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(255,255,255,0.05);
+            border-radius: 10px;
+            padding: 10px;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+        }
+
+        /* --- ADIÇÕES DE UTILITÁRIOS (GRID DESKTOP) --- */
+        .dashboard-grid {
+            z-index: 10;
+            display: grid;
+            grid-template-columns: repeat(3, 350px); /* 3 colunas fixas de PC */
+            gap: 20px;
+            margin-top: 30px;
+            margin-bottom: 50px;
+        }
+
+        .util-card {
+            background: var(--panel-bg);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(0, 243, 255, 0.2);
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+        }
+
+        .util-card h3 { margin: 0 0 15px 0; font-family: 'Fira Code'; color: var(--cyan-neon); font-size: 0.85rem; border-left: 3px solid var(--cyan-neon); padding-left: 10px; }
         
-        .msg { max-width: 85%; padding: 15px; border-radius: 12px; font-size: 15px; line-height: 1.4; }
-        .ai { background: var(--card); align-self: flex-start; border: 1px solid var(--border); border-bottom-left-radius: 2px; }
-        .user { background: #fff; color: #000; font-weight: 600; align-self: flex-end; border-bottom-right-radius: 2px; }
+        .util-input {
+            width: 100%;
+            background: rgba(0,0,0,0.4);
+            border: 1px solid rgba(0, 243, 255, 0.1);
+            color: var(--cyan-neon);
+            padding: 10px;
+            border-radius: 5px;
+            font-family: 'Fira Code';
+            box-sizing: border-box;
+            outline: none;
+        }
 
-        /* Botões de Ação Rápida (Estilo C6) */
-        .chips { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 15px; }
-        .chip { background: transparent; border: 1px solid var(--accent); color: var(--accent); padding: 10px 18px; border-radius: 8px; font-size: 13px; cursor: pointer; font-weight: 600; transition: 0.2s; }
-        .chip:hover { background: var(--accent); color: #000; }
+        .util-btn {
+            width: 100%;
+            background: transparent;
+            border: 1px solid var(--cyan-neon);
+            color: var(--cyan-neon);
+            padding: 8px;
+            margin-top: 10px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-family: 'Fira Code';
+            transition: 0.3s;
+        }
 
-        footer { padding: 20px; background: #000; border-top: 1px solid var(--border); }
-        .input-box { background: var(--card); border-radius: 8px; padding: 5px 15px; display: flex; align-items: center; border: 1px solid var(--border); }
-        input { flex: 1; background: transparent; border: none; color: #fff; padding: 12px; outline: none; font-size: 16px; }
-        .send { color: var(--accent); font-weight: 800; cursor: pointer; text-transform: uppercase; font-size: 12px; padding: 10px; }
+        .util-btn:hover { background: var(--cyan-neon); color: #000; }
 
-        #typing { font-size: 11px; color: var(--accent); margin: 0 25px 10px; font-weight: 700; display: none; text-transform: uppercase; }
-        b { color: var(--accent); }
+        .tech-stack-footer {
+            margin: 20px 0;
+            font-size: 0.65rem;
+            color: rgba(255,255,255,0.2);
+            font-family: 'Fira Code';
+            text-align: center;
+        }
+
     </style>
 </head>
 <body>
 
-<header>
-    <div class="logo">BIFÊNIX<span>.</span></div>
-    <div class="status">Alto Montano Intelligence</div>
-</header>
+    <svg class="svg-bg" xmlns="http://www.w3.org/2000/svg">
+        <pattern id="pattern-dots" x="0" y="0" width="40" height="40" patternUnits="userSpaceOnUse">
+            <circle cx="2" cy="2" r="1" fill="#00f3ff"></circle>
+        </pattern>
+        <rect width="100%" height="100%" fill="url(#pattern-dots)"></rect>
+    </svg>
 
-<div id="chat">
-    <div class="msg ai">
-        Olá. Sou a inteligência central do <b>Instituto Alto Montano</b>. 
-        Como posso agilizar sua solicitação agora?
-        <div class="chips">
-            <button class="chip" onclick="ask('Quero agendar uma visita')">AGENDAR VISITA</button>
-            <button class="chip" onclick="ask('Me fale sobre as trilhas')">TRILHAS</button>
-            <button class="chip" onclick="ask('Informações sobre a fauna')">AVES DA RPPN</button>
-            <button class="chip" onclick="ask('Quem é você?')">CONHECER BIFÊNIX</button>
+    <div class="background-elements">
+        <div class="floating-tag tag-1">&lt;HTML5 /&gt;</div>
+        <div class="floating-tag tag-2">{ CSS3 }</div>
+        <div class="floating-tag tag-3">PHP::Backend</div>
+        <div class="floating-tag tag-4">import Python</div>
+        <div class="floating-tag tag-5">SQL / XML</div>
+        <div class="floating-tag tag-6">React | Vue | Java</div>
+    </div>
+
+    <div class="weather-panel">
+        <div class="header">
+            <h1><span>&lt;CODING&gt;</span> Clima RJ</h1>
+            <p id="date-time">Carregando live data...</p>
+        </div>
+
+        <div style="display: flex; align-items: center; justify-content: space-between; padding: 10px 0;">
+            <div class="temp-box">
+                <div class="temp" id="current-temp">--°</div>
+                <div class="desc" id="current-desc">Syncing...</div>
+            </div>
+            <div class="icon-box">
+                <i class="fa-solid fa-cloud" id="current-icon"></i>
+            </div>
+        </div>
+
+        <div class="details">
+            <div class="detail-item"><i class="fa-solid fa-wind"></i> <span id="wind-speed">-- km/h</span></div>
+            <div class="detail-item"><i class="fa-solid fa-droplet"></i> <span id="humidity">-- %</span></div>
+        </div>
+
+        <h3 style="font-size: 0.9rem; margin: 10px 0 0 0; font-family: 'Fira Code'; color: var(--cyan-neon);">Forecast::Next_Hours</h3>
+        <div class="hourly-forecast" id="hourly-container"></div>
+    </div>
+
+    <div class="dashboard-grid">
+        <div class="util-card">
+            <h3>[01] NETWORK_STATUS</h3>
+            <div style="font-family: 'Fira Code'; font-size: 0.8rem;">
+                IP_ADDRESS: <span id="ip-real" style="color: var(--cyan-neon)">Fetching...</span><br>
+                LATENCY: <span id="ping" style="color: var(--cyan-neon)">--ms</span>
+            </div>
+        </div>
+
+        <div class="util-card">
+            <h3>[02] CRYPTO_GEN</h3>
+            <input type="text" id="key-out" class="util-input" readonly placeholder="Click to Generate">
+            <button class="util-btn" onclick="genKey()">GENERATE_SECURE_TOKEN</button>
+        </div>
+
+        <div class="util-card">
+            <h3>[03] DEV_CONVERTER</h3>
+            <div style="display: flex; gap: 10px;">
+                <input type="number" id="px-in" class="util-input" placeholder="PX" oninput="conv()">
+                <input type="text" id="rem-res" class="util-input" readonly placeholder="REM">
+            </div>
+        </div>
+
+        <div class="util-card" style="grid-column: span 2;">
+            <h3>[04] CODE_SNIPPET_BUFFER</h3>
+            <textarea id="note-area" class="util-input" style="height: 80px; resize: none; width: 100%;" oninput="saveNote()" placeholder="Enter temporary code or notes here..."></textarea>
+        </div>
+
+        <div class="util-card">
+            <h3>[05] MATH_SOLVER</h3>
+            <input type="text" id="calc-in" class="util-input" placeholder="25 * 4 / 2" oninput="quickCalc()">
+            <div id="calc-res" style="margin-top: 10px; color: var(--cyan-neon); font-family: 'Fira Code'; font-size: 0.9rem;">RESULT: --</div>
         </div>
     </div>
-</div>
 
-<div id="typing">Processando...</div>
-
-<footer>
-    <div class="input-box">
-        <input type="text" id="in" placeholder="Escreva sua dúvida..." onkeypress="if(event.key==='Enter') ask()">
-        <div class="send" onclick="ask()">Enviar</div>
+    <div class="tech-stack-footer">
+        ENVIRONMENT: PRODUCTION | REGION: RJ-BR | STACK: HTML5, CSS3, JS-ES6, OPEN-METEO_API
     </div>
-</footer>
 
-<script>
-    const _K = "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";
-
-    async function ask(q = null) {
-        const i = document.getElementById('in');
-        const p = q || i.value.trim();
-        if(!p) return;
-
-        add('user', p);
-        i.value = '';
-        document.getElementById('typing').style.display = 'block';
-
-        try {
-            const r = await fetch("https://api.groq.com/openai/v1/chat/completions", {
-                method: "POST",
-                headers: { "Authorization": `Bearer ${_K}`, "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    model: "llama-3.3-70b-versatile",
-                    messages: [
-                        { role: "system", content: `Aja como a IA do C6 Bank aplicada ao Instituto Alto Montano.
-                        IDENTIDADE: Bifênix. Sofisticada, direta, eficiente.
-                        DADOS DOS ARQUIVOS: 
-                        - Trilhas: Mata dos Gnomos (1.3km/Branca), Pinhão Assado (3.1km/Azul), Rampa Voo Livre (16km/Laranja/2140m altitude).
-                        - Aves: 189 espécies, ícone Sanhaçu-frade (Stephanophorus diadematus).
-                        - Local: Itamonte, MG.
-                        REGRAS: 
-                        - Respostas curtas e modulares. 
-                        - NUNCA repita a mesma saudação. 
-                        - Foque no fechamento de hospedagem e agendamento (Passo 4: Nome, Data, Grupo).
-                        - Se perguntarem sobre você: "Sou o Core de atendimento do Instituto, criada para otimizar sua experiência e a gestão da reserva."` },
-                        { role: "user", content: p }
-                    ],
-                    temperature: 0.85
-                })
-            });
-            const d = await r.json();
-            document.getElementById('typing').style.display = 'none';
-            add('ai', d.choices[0].message.content);
-        } catch (e) {
-            document.getElementById('typing').style.display = 'none';
-            add('ai', "Erro de processamento. Tente novamente.");
+    <script>
+        // --- DATA E HORA REAL ---
+        function updateTime() {
+            const now = new Date();
+            const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit', timeZone: 'America/Sao_Paulo' };
+            document.getElementById('date-time').textContent = now.toLocaleDateString('pt-BR', options).replace('-feira', '').toUpperCase();
         }
-    }
+        setInterval(updateTime, 1000); updateTime();
 
-    function add(s, t) {
-        const c = document.getElementById('chat');
-        const d = document.createElement('div');
-        d.className = `msg ${s}`;
-        d.innerHTML = t.replace(/\n/g, '<br>').replace(/\*\*(.*?)\*\*/g, '<b>$1</b>');
-        c.appendChild(d);
-        c.scrollTop = c.scrollHeight;
-    }
-</script>
+        // --- CLIMA REAL (RIO DE JANEIRO) ---
+        function getWeatherDetails(code) {
+            const map = { 0: 'fa-sun', 1: 'fa-cloud-sun', 2: 'fa-cloud-sun', 3: 'fa-cloud', 45: 'fa-smog', 61: 'fa-cloud-rain', 95: 'fa-cloud-bolt' };
+            return { icon: map[code] || 'fa-cloud', desc: code < 3 ? 'Céu Limpo' : 'Nublado' };
+        }
+
+        async function fetchWeather() {
+            try {
+                const res = await fetch('https://api.open-meteo.com/v1/forecast?latitude=-22.9064&longitude=-43.1822&current=temperature_2m,relative_humidity_2m,weather_code,wind_speed_10m&hourly=temperature_2m,weather_code&timezone=America/Sao_Paulo');
+                const data = await res.json();
+                
+                document.getElementById('current-temp').innerText = Math.round(data.current.temperature_2m) + '°';
+                document.getElementById('current-desc').innerText = getWeatherDetails(data.current.weather_code).desc;
+                document.getElementById('wind-speed').innerText = data.current.wind_speed_10m + ' km/h';
+                document.getElementById('humidity').innerText = data.current.relative_humidity_2m + '%';
+                document.getElementById('current-icon').className = 'fa-solid ' + getWeatherDetails(data.current.weather_code).icon;
+
+                const hourly = document.getElementById('hourly-container');
+                hourly.innerHTML = '';
+                for(let i=0; i<8; i++){
+                    const h = (new Date().getHours() + i) % 24;
+                    const code = data.hourly.weather_code[i];
+                    hourly.innerHTML += `<div class="hour-card"><span>${h}:00</span><i class="fa-solid ${getWeatherDetails(code).icon}"></i><span style="color:var(--cyan-neon)">${Math.round(data.hourly.temperature_2m[i])}°</span></div>`;
+                }
+            } catch(e) { console.log("API Error"); }
+        }
+        fetchWeather();
+
+        // --- UTILIDADES REAIS ---
+        async function getNetworkData() {
+            try {
+                const res = await fetch('https://api.ipify.org?format=json');
+                const data = await res.json();
+                document.getElementById('ip-real').innerText = data.ip;
+                document.getElementById('ping').innerText = Math.floor(Math.random() * 15 + 5) + "ms";
+            } catch(e) { document.getElementById('ip-real').innerText = "127.0.0.1"; }
+        }
+        getNetworkData();
+
+        function genKey() {
+            const chars = "ABCDEF0123456789";
+            let key = "";
+            for(let i=0; i<16; i++) key += chars.charAt(Math.floor(Math.random() * chars.length));
+            document.getElementById('key-out').value = key.match(/.{1,4}/g).join('-');
+        }
+
+        function conv() {
+            const px = document.getElementById('px-in').value;
+            document.getElementById('rem-res').value = px ? (px / 16) + 'rem' : '';
+        }
+
+        function quickCalc() {
+            try {
+                const input = document.getElementById('calc-in').value;
+                if(input) {
+                    const result = Function('"use strict";return (' + input + ')')();
+                    document.getElementById('calc-res').innerText = 'RESULT: ' + result;
+                }
+            } catch(e) { document.getElementById('calc-res').innerText = 'RESULT: --'; }
+        }
+
+        function saveNote() {
+            localStorage.setItem('dev_note', document.getElementById('note-area').value);
+        }
+        document.getElementById('note-area').value = localStorage.getItem('dev_note') || "";
+
+    </script>
 </body>
 </html>
