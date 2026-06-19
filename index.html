@@ -1,351 +1,1088 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Painel IPTV StreamBR</title>
-    <!-- Tailwind CSS v4 via CDN -->
-    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
-    <style>
-        body {
-            background-color: #06070a;
-            color: #ecf0f1;
-            font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-            margin: 0;
-            padding: 0;
-            min-height: 100vh;
-        }
-        .neon-shadow {
-            box-shadow: 0 0 20px rgba(0, 239, 255, 0.15);
-        }
-        /* Customização da Scrollbar */
-        ::-webkit-scrollbar {
-            width: 8px;
-        }
-        ::-webkit-scrollbar-track {
-            background: #06070a;
-        }
-        ::-webkit-scrollbar-thumb {
-            background: #1f2937;
-            border-radius: 4px;
-        }
-        ::-webkit-scrollbar-thumb:hover {
-            background: #00eff5;
-        }
-    </style>
-</head>
-<body class="p-4 md:p-8">
-
-    <!-- Cabeçalho Principal e Barra de Busca -->
-    <header class="max-w-7xl mx-auto mb-10 flex flex-col md:flex-row items-center justify-between gap-6 bg-zinc-950/40 p-6 rounded-2xl border border-zinc-900/80 backdrop-blur-md">
-        <h1 class="text-3xl font-black tracking-widest text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-purple-500">
-            STREAM<span class="text-white drop-shadow-[0_0_10px_rgba(255,255,255,0.3)]">BR</span>
-        </h1>
-        
-        <div class="w-full md:w-112 flex gap-2 relative">
-            <input type="text" id="search-input" placeholder="Buscar filme ou série dublada..." 
-                   class="w-full px-5 py-3 rounded-xl bg-zinc-900/90 border border-zinc-800 focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 transition-all text-sm placeholder-zinc-500">
-            <button onclick="searchContent()" class="px-6 py-3 bg-gradient-to-r from-cyan-500 to-purple-600 hover:from-cyan-400 hover:to-purple-500 text-white font-bold rounded-xl text-sm transition-all duration-300 shadow-lg shadow-cyan-500/10 active:scale-95">
-                Buscar
-            </button>
-        </div>
-    </header>
-
-    <main class="max-w-7xl mx-auto">
-        <!-- Container do Player Dinâmico e Protegido -->
-        <section id="player-container" class="hidden mb-12 bg-zinc-950/80 backdrop-blur-xl rounded-2xl overflow-hidden p-4 border border-cyan-500/20 neon-shadow transition-all duration-500">
-            <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 mb-4 pb-4 border-b border-zinc-900">
-                <div class="flex flex-col gap-1">
-                    <span id="player-type" class="text-xs font-semibold text-purple-400 uppercase tracking-widest">Cinema</span>
-                    <h2 id="player-title" class="text-xl font-bold text-cyan-400 tracking-wide">Reproduzindo</h2>
-                </div>
-                
-                <!-- Seleção Alternativa de Servidores Dublados e Atualizados -->
-                <div class="flex flex-wrap gap-2 bg-zinc-900/90 p-1.5 rounded-xl border border-zinc-800">
-                    <button id="btn-srv1" onclick="changeServer('servidor1')" class="px-4 py-2 text-xs font-bold rounded-lg bg-cyan-500 text-black transition-all duration-250 shadow-md">
-                        🔥 Servidor 1 (Dublado)
-                    </button>
-                    <button id="btn-srv2" onclick="changeServer('servidor2')" class="px-4 py-2 text-xs font-bold rounded-lg text-zinc-400 hover:text-white transition-all duration-250">
-                        🚀 Servidor 2 (Dublado)
-                    </button>
-                    <button id="btn-srv3" onclick="changeServer('servidor3')" class="px-4 py-2 text-xs font-bold rounded-lg text-zinc-400 hover:text-white transition-all duration-250">
-                        ⚡ Servidor 3 (Global)
-                    </button>
-                </div>
-
-                <button onclick="closePlayer()" class="text-zinc-400 hover:text-white font-semibold text-xs bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 px-4 py-2.5 rounded-xl transition-all active:scale-95">
-                    ✕ Fechar Player
-                </button>
-            </div>
-
-            <!-- Seletor de Episódios (Apenas para Séries) -->
-            <div id="series-selector" class="hidden mb-4 bg-zinc-900/50 p-4 rounded-xl border border-zinc-800/80">
-                <div class="flex flex-wrap gap-4 items-center">
-                    <div>
-                        <label class="block text-xs text-zinc-400 mb-1 font-bold uppercase">Temporada</label>
-                        <select id="season-select" onchange="onSeasonChange()" class="bg-zinc-950 border border-zinc-800 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:border-cyan-500"></select>
-                    </div>
-                    <div class="flex-1">
-                        <label class="block text-xs text-zinc-400 mb-1 font-bold uppercase">Episódio</label>
-                        <div id="episodes-grid" class="flex flex-wrap gap-2 mt-1"></div>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Player de Vídeo Proporção 16:9 -->
-            <div class="relative w-full aspect-video bg-black rounded-xl overflow-hidden shadow-2xl border border-zinc-900">
-                <!-- BLINDAGEM MÁXIMA ANTI-ADS: Sem allow-popups e sem allow-top-navigation -->
-                <iframe id="video-iframe" src="" class="absolute top-0 left-0 w-full h-full border-0" 
-                        allowfullscreen sandbox="allow-scripts allow-same-origin allow-forms"></iframe>
-            </div>
-        </section>
-
-        <!-- Grade de Catálogos -->
-        <div class="flex items-center justify-between mb-6">
-            <h2 id="section-heading" class="text-xl font-black tracking-wider uppercase flex items-center gap-2">
-                <span class="w-2.5 h-6 bg-gradient-to-b from-cyan-400 to-purple-600 rounded-full"></span> Filmes e Séries em Alta (PT-BR)
-            </h2>
-            <button id="back-catalog-btn" onclick="resetCatalog()" class="hidden text-xs font-bold text-cyan-400 hover:underline">
-                ← Voltar aos Destaques
-            </button>
-        </div>
-        
-        <div id="catalog-grid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-6"></div>
-    </main>
-
-    <script>
-        // Chave do TMDB para metadados e capas
-        const TMDB_API_KEY = '8af7366b5b5c960a5e8401309e3e7f4b'; 
-        const TMDB_BASE_URL = 'https://api.themoviedb.org/3';
-        const IMG_URL = 'https://image.tmdb.org/t/p/w500';
-
-        // APIs atualizadas com servidores nacionais funcionais (Dublados)
-        const SERVIDORES_FILME = {
-            servidor1: "https://embed.superflixapi.top/filme/",
-            servidor2: "https://embed.warezcdn.com/filme/",
-            servidor3: "https://vidsrc.icu/embed/movie/"
-        };
-
-        const SERVIDORES_SERIE = {
-            servidor1: "https://embed.superflixapi.top/serie/", // Formato: id/temp/ep
-            servidor2: "https://embed.warezcdn.com/serie/",     // Formato: id/temp/ep
-            servidor3: "https://vidsrc.icu/embed/tv/"          // Formato: id/temp/ep
-        };
-
-        let itemAtual = null; // Guarda o objeto completo do filme/série selecionado
-        let tipoAtual = 'movie'; // 'movie' ou 'tv'
-        let servidorAtual = "servidor1";
-        let temporadaAtual = 1;
-        let episodioAtual = 1;
-
-        document.addEventListener('DOMContentLoaded', () => {
-            loadTrending();
-        });
-
-        // Carrega misturado o que está em alta (Filmes e Séries)
-        async function loadTrending() {
-            try {
-                const response = await fetch(`${TMDB_BASE_URL}/trending/all/week?api_key=${TMDB_API_KEY}&language=pt-BR`);
-                const data = await response.json();
-                renderCatalog(data.results);
-            } catch (error) {
-                console.error("Erro ao buscar tendências:", error);
+<html lang="pt-br">
+ <head>
+  <meta charset="utf-8"/>
+  <meta content="width=device-width, initial-scale=1.0" name="viewport">
+   <title>
+    Central Denúncias Wa
+   </title>
+   <link href="https://fonts.googleapis.com" rel="preconnect"/>
+   <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;800;900&amp;family=Share+Tech+Mono&amp;display=swap" rel="stylesheet"/>
+   <style>
+    * {
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+}
+ body {
+    font-family:'Orbitron',sans-serif;
+    background:#000;
+    min-height:100vh;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    position:relative;
+    overflow:hidden;
+}
+ body::after {
+    content:"";
+    position:fixed;
+    inset:0;
+    background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,0.18) 2px,rgba(0,0,0,0.18) 4px);
+    pointer-events:none;
+    z-index:9999;
+}
+ .bg-grid {
+    position:fixed;
+    inset:0;
+    background:linear-gradient(rgba(255,0,0,0.06) 1px,transparent 1px),linear-gradient(90deg,rgba(255,0,0,0.06) 1px,transparent 1px);
+    background-size:50px 50px;
+    animation:gridMove 20s linear infinite;
+}
+ @keyframes gridMove {
+    0% {
+    background-position:0 0;
+}
+100% {
+    background-position:50px 50px;
+}
+}
+ .bg-glow {
+    position:fixed;
+    inset:0;
+    background:radial-gradient(ellipse 60% 50% at 50% 50%,rgba(180,0,0,0.18) 0%,transparent 70%);
+    pointer-events:none;
+}
+ .particles {
+    position:fixed;
+    inset:0;
+    overflow:hidden;
+    pointer-events:none;
+}
+ .particles span {
+    position:absolute;
+    bottom:-10px;
+    border-radius:50%;
+    background:radial-gradient(circle,#ff4444,#ff0000);
+    box-shadow:0 0 8px #ff0000,0 0 20px #ff000088;
+    animation:rise linear infinite;
+    opacity:0;
+}
+ @keyframes rise {
+    0% {
+    transform:translateY(0) scale(0.5);
+    opacity:0;
+}
+10% {
+    opacity:0.9;
+}
+90% {
+    opacity:0.4;
+}
+100% {
+    transform:translateY(-110vh) scale(1.2);
+    opacity:0;
+}
+}
+ .lightning {
+    position:fixed;
+    inset:0;
+    pointer-events:none;
+    overflow:hidden;
+}
+ .lightning span {
+    position:absolute;
+    width:2px;
+    background:linear-gradient(to bottom,transparent,#ff2222,#fff,#ff2222,transparent);
+    box-shadow:0 0 10px #ff0000,0 0 30px #ff000099,0 0 60px #ff000044;
+    opacity:0;
+    animation:flash linear infinite;
+}
+ @keyframes flash {
+    0%,90%,100% {
+    opacity:0;
+    transform:scaleY(0.8);
+}
+3%,6% {
+    opacity:1;
+    transform:scaleY(1);
+}
+4.5% {
+    opacity:0.4;
+    transform:scaleY(1.05);
+}
+}
+ .corner {
+    position:fixed;
+    width:80px;
+    height:80px;
+    pointer-events:none;
+}
+ .corner::before,.corner::after {
+    content:"";
+    position:absolute;
+    background:#ff0000;
+    box-shadow:0 0 8px #ff0000;
+}
+ .corner::before {
+    width:2px;
+    height:100%;
+}
+ .corner::after {
+    width:100%;
+    height:2px;
+}
+ .corner.tl {
+    top:20px;
+    left:20px;
+}
+.corner.tl::before {
+    top:0;
+    left:0;
+}
+.corner.tl::after {
+    top:0;
+    left:0;
+}
+ .corner.tr {
+    top:20px;
+    right:20px;
+    transform:scaleX(-1);
+}
+.corner.tr::before {
+    top:0;
+    left:0;
+}
+.corner.tr::after {
+    top:0;
+    left:0;
+}
+ .corner.bl {
+    bottom:20px;
+    left:20px;
+    transform:scaleY(-1);
+}
+.corner.bl::before {
+    top:0;
+    left:0;
+}
+.corner.bl::after {
+    top:0;
+    left:0;
+}
+ .corner.br {
+    bottom:20px;
+    right:20px;
+    transform:scale(-1);
+}
+.corner.br::before {
+    top:0;
+    left:0;
+}
+.corner.br::after {
+    top:0;
+    left:0;
+}
+ .ticker {
+    position:fixed;
+    bottom:0;
+    left:0;
+    right:0;
+    height:32px;
+    background:rgba(100,0,0,0.5);
+    border-top:1px solid rgba(255,0,0,0.5);
+    overflow:hidden;
+    display:flex;
+    align-items:center;
+    z-index:100;
+    backdrop-filter:blur(6px);
+}
+ .ticker-inner {
+    display:flex;
+    gap:80px;
+    white-space:nowrap;
+    animation:ticker 30s linear infinite;
+    color:#ff4444;
+    font-size:11px;
+    letter-spacing:2px;
+    font-family:'Share Tech Mono',monospace;
+}
+ @keyframes ticker {
+    0% {
+    transform:translateX(0);
+}
+100% {
+    transform:translateX(-50%);
+}
+}
+ .wrap {
+    position:relative;
+    z-index:10;
+    width:100%;
+    max-width:460px;
+    padding:16px;
+}
+ .card {
+    position:relative;
+    padding:44px 40px;
+    border-radius:20px;
+    background:rgba(4,0,0,0.82);
+    border:1px solid rgba(255,0,0,0.35);
+    backdrop-filter:blur(20px);
+    box-shadow:0 0 0 1px rgba(255,0,0,0.08),0 0 30px rgba(255,0,0,0.35),0 0 80px rgba(255,0,0,0.15),inset 0 0 60px rgba(255,0,0,0.07);
+    animation:cardPulse 4s ease-in-out infinite alternate;
+    overflow:hidden;
+}
+ @keyframes cardPulse {
+    from {
+    box-shadow:0 0 0 1px rgba(255,0,0,0.08),0 0 30px rgba(255,0,0,0.35),0 0 80px rgba(255,0,0,0.15),inset 0 0 60px rgba(255,0,0,0.07);
+}
+to {
+    box-shadow:0 0 0 1px rgba(255,0,0,0.15),0 0 60px rgba(255,0,0,0.6),0 0 120px rgba(255,0,0,0.25),inset 0 0 80px rgba(255,0,0,0.12);
+}
+}
+ .card::before {
+    content:"";
+    position:absolute;
+    top:0;
+    left:10%;
+    width:80%;
+    height:2px;
+    background:linear-gradient(90deg,transparent,#ff0000,#ff4444,#ff0000,transparent);
+    box-shadow:0 0 12px #ff000099;
+}
+ .badge {
+    display:inline-flex;
+    align-items:center;
+    gap:6px;
+    background:rgba(255,0,0,0.12);
+    border:1px solid rgba(255,0,0,0.4);
+    border-radius:999px;
+    padding:4px 14px;
+    font-size:10px;
+    color:#ff4444;
+    letter-spacing:3px;
+    margin-bottom:18px;
+}
+ .badge-dot {
+    width:6px;
+    height:6px;
+    border-radius:50%;
+    background:#ff2222;
+    box-shadow:0 0 6px #ff0000;
+    animation:blink 1.2s ease-in-out infinite;
+}
+ @keyframes blink {
+    0%,100% {
+    opacity:1;
+}
+50% {
+    opacity:0.2;
+}
+}
+ .logo {
+    text-align:center;
+    margin-bottom:36px;
+}
+ .logo-title {
+    font-size:38px;
+    font-weight:900;
+    letter-spacing:6px;
+    color:#fff;
+    text-shadow:0 0 10px #ff0000,0 0 30px #ff0000,0 0 70px #ff000088;
+    line-height:1;
+    position:relative;
+    display:inline-block;
+    animation:glitch 6s infinite;
+}
+ .logo-title::after {
+    content:attr(data-text);
+    position:absolute;
+    left:2px;
+    top:2px;
+    color:#ff2222;
+    opacity:0.4;
+    filter:blur(2px);
+    z-index:-1;
+}
+ @keyframes glitch {
+    0%,90%,100% {
+    text-shadow:0 0 10px #ff0000,0 0 30px #ff0000,0 0 70px #ff000088;
+}
+92% {
+    text-shadow:-3px 0 #0ff,3px 0 #f0f,0 0 30px #ff0000;
+}
+94% {
+    text-shadow:3px 0 #0ff,-3px 0 #f0f,0 0 30px #ff0000;
+}
+96% {
+    text-shadow:-3px 0 #0ff,3px 0 #f0f,0 0 30px #ff0000;
+}
+98% {
+    text-shadow:0 0 10px #ff0000,0 0 30px #ff0000,0 0 70px #ff000088;
+}
+}
+ .logo-sub {
+    margin-top:10px;
+    color:#666;
+    font-size:11px;
+    letter-spacing:4px;
+    font-family:'Share Tech Mono',monospace;
+}
+ .divider {
+    height:1px;
+    background:linear-gradient(90deg,transparent,rgba(255,0,0,0.5),transparent);
+    margin:0 0 28px;
+}
+ .inputBox {
+    margin-bottom:20px;
+    position:relative;
+}
+ .inputBox label {
+    color:#cc2222;
+    font-size:10px;
+    letter-spacing:3px;
+    display:flex;
+    align-items:center;
+    gap:6px;
+    margin-bottom:10px;
+}
+ .inputBox label svg {
+    opacity:0.7;
+}
+ .inputBox input,.inputBox select {
+    width:100%;
+    padding:16px 18px;
+    border-radius:12px;
+    border:1px solid rgba(255,0,0,0.25);
+    background:rgba(10,0,0,0.7);
+    color:#fff;
+    outline:none;
+    transition:all 0.3s;
+    font-family:'Orbitron',sans-serif;
+    font-size:13px;
+    letter-spacing:1px;
+}
+ .inputBox input::placeholder {
+    color:#3a3a3a;
+}
+ .inputBox input:focus,.inputBox select:focus {
+    border-color:rgba(255,0,0,0.7);
+    box-shadow:0 0 0 3px rgba(255,0,0,0.12),0 0 20px rgba(255,0,0,0.3);
+    background:rgba(18,0,0,0.85);
+}
+ .inputBox select option {
+    background:#0d0000;
+    color:#fff;
+}
+ .eye-toggle {
+    position:absolute;
+    right:16px;
+    bottom:16px;
+    cursor:pointer;
+    color:#441111;
+    transition:color 0.2s;
+}
+ .eye-toggle:hover {
+    color:#ff3333;
+}
+ .strength {
+    display:flex;
+    gap:4px;
+    margin-top:8px;
+}
+ .strength-bar {
+    height:3px;
+    flex:1;
+    border-radius:999px;
+    background:rgba(255,0,0,0.1);
+    transition:background 0.4s;
+}
+ .strength-bar.active {
+    background:#ff0000;
+    box-shadow:0 0 6px #ff000099;
+}
+ .btn {
+    width:100%;
+    padding:18px;
+    margin-top:10px;
+    border:none;
+    border-radius:14px;
+    background:linear-gradient(135deg,#5e0000 0%,#cc0000 50%,#5e0000 100%);
+    background-size:200% 200%;
+    color:#fff;
+    font-family:'Orbitron',sans-serif;
+    font-size:15px;
+    font-weight:800;
+    letter-spacing:5px;
+    cursor:pointer;
+    transition:transform 0.2s,box-shadow 0.2s;
+    animation:btnShift 5s ease infinite;
+    box-shadow:0 0 20px rgba(255,0,0,0.5),0 4px 20px rgba(0,0,0,0.6);
+    position:relative;
+    overflow:hidden;
+}
+ .btn::after {
+    content:"";
+    position:absolute;
+    top:-50%;
+    left:-60%;
+    width:40%;
+    height:200%;
+    background:rgba(255,255,255,0.1);
+    transform:rotate(20deg) skewX(-10deg);
+    animation:btnShine 5s ease infinite;
+}
+ @keyframes btnShine {
+    0%,40% {
+    left:-60%;
+}
+55%,100% {
+    left:130%;
+}
+}
+ @keyframes btnShift {
+    0% {
+    background-position:0% 50%;
+}
+50% {
+    background-position:100% 50%;
+}
+100% {
+    background-position:0% 50%;
+}
+}
+ .btn:hover {
+    transform:translateY(-2px) scale(1.02);
+    box-shadow:0 0 40px rgba(255,0,0,0.8),0 8px 30px rgba(0,0,0,0.7);
+}
+ .btn:active {
+    transform:scale(0.98);
+}
+ .erro {
+    color:#ff4444;
+    text-align:center;
+    margin-top:14px;
+    font-size:11px;
+    letter-spacing:2px;
+    min-height:18px;
+    font-family:'Share Tech Mono',monospace;
+}
+ #loginPage {
+    display:block;
+}
+#painelPage {
+    display:none;
+}
+ .loading {
+    margin-top:24px;
+    display:none;
+    animation:fadeIn 0.3s ease;
+}
+ @keyframes fadeIn {
+    from {
+    opacity:0;
+    transform:translateY(8px);
+}
+to {
+    opacity:1;
+    transform:none;
+}
+}
+ .loadingLabel {
+    color:#ff4444;
+    font-size:11px;
+    letter-spacing:3px;
+    text-align:center;
+    margin-bottom:12px;
+    font-family:'Share Tech Mono',monospace;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:10px;
+}
+ .loadingLabel::before,.loadingLabel::after {
+    content:"";
+    flex:1;
+    height:1px;
+    background:linear-gradient(to right,transparent,rgba(255,0,0,0.4));
+}
+ .loadingLabel::after {
+    background:linear-gradient(to left,transparent,rgba(255,0,0,0.4));
+}
+ .bar-wrap {
+    position:relative;
+    width:100%;
+    height:14px;
+    background:rgba(255,0,0,0.08);
+    border-radius:999px;
+    overflow:hidden;
+    border:1px solid rgba(255,0,0,0.2);
+}
+ .bar-fill {
+    height:100%;
+    width:0%;
+    border-radius:999px;
+    background:linear-gradient(90deg,#7a0000,#ff0000,#ff6666,#ff0000,#7a0000);
+    background-size:200% 100%;
+    box-shadow:0 0 14px #ff0000,0 0 30px rgba(255,0,0,0.6);
+    transition:width 0.05s;
+}
+ .bar-pct {
+    position:absolute;
+    inset:0;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:9px;
+    letter-spacing:2px;
+    color:rgba(255,200,200,0.85);
+    font-family:'Share Tech Mono',monospace;
+}
+ .bar-steps {
+    margin-top:12px;
+    font-size:10px;
+    color:#441414;
+    font-family:'Share Tech Mono',monospace;
+    letter-spacing:1px;
+    line-height:1.9;
+}
+ .bar-steps .step {
+    display:flex;
+    align-items:center;
+    gap:8px;
+    transition:color 0.3s;
+}
+ .bar-steps .step.done {
+    color:#ff4444;
+}
+ .bar-steps .step::before {
+    content:"○";
+    font-size:10px;
+    transition:0.3s;
+}
+ .bar-steps .step.done::before {
+    content:"●";
+    color:#ff0000;
+    text-shadow:0 0 8px #ff0000;
+}
+ .stats {
+    display:flex;
+    gap:12px;
+    margin-bottom:24px;
+}
+ .stat-box {
+    flex:1;
+    border:1px solid rgba(255,0,0,0.2);
+    border-radius:12px;
+    padding:12px 10px;
+    text-align:center;
+    background:rgba(20,0,0,0.4);
+    position:relative;
+    overflow:hidden;
+}
+ .stat-box::before {
+    content:"";
+    position:absolute;
+    top:0;
+    left:0;
+    right:0;
+    height:1px;
+    background:linear-gradient(90deg,transparent,rgba(255,0,0,0.5),transparent);
+}
+ .stat-val {
+    font-size:22px;
+    font-weight:900;
+    color:#ff2222;
+    text-shadow:0 0 12px #ff0000;
+    line-height:1;
+}
+ .stat-lbl {
+    font-size:8px;
+    color:#441111;
+    letter-spacing:2px;
+    margin-top:5px;
+    font-family:'Share Tech Mono',monospace;
+}
+ .popup {
+    position:fixed;
+    top:50%;
+    left:50%;
+    transform:translate(-50%,-50%) scale(0.8);
+    background:rgba(4,0,0,0.96);
+    border:1px solid rgba(255,0,0,0.6);
+    padding:36px 50px;
+    border-radius:20px;
+    color:#fff;
+    z-index:1000;
+    box-shadow:0 0 0 1px rgba(255,0,0,0.1),0 0 40px #ff0000,0 0 100px rgba(255,0,0,0.4);
+    opacity:0;
+    transition:all 0.4s cubic-bezier(0.34,1.56,0.64,1);
+    pointer-events:none;
+    text-align:center;
+    backdrop-filter:blur(20px);
+}
+ .popup.active {
+    opacity:1;
+    transform:translate(-50%,-50%) scale(1);
+    pointer-events:all;
+}
+ .popup-icon {
+    font-size:48px;
+    margin-bottom:14px;
+    display:block;
+    filter:drop-shadow(0 0 12px #ff0000);
+}
+ .popup-title {
+    font-size:18px;
+    font-weight:800;
+    letter-spacing:4px;
+    color:#fff;
+    text-shadow:0 0 20px #ff0000;
+    margin-bottom:8px;
+}
+ .popup-sub {
+    font-size:11px;
+    color:#888;
+    letter-spacing:2px;
+    font-family:'Share Tech Mono',monospace;
+}
+ .overlay {
+    position:fixed;
+    inset:0;
+    background:rgba(0,0,0,0.5);
+    backdrop-filter:blur(4px);
+    z-index:999;
+    opacity:0;
+    pointer-events:none;
+    transition:opacity 0.4s;
+}
+ .overlay.active {
+    opacity:1;
+    pointer-events:all;
+}
+ @media(max-width:520px) {
+    .card {
+    padding:32px 22px;
+}
+.logo-title {
+    font-size:28px;
+    letter-spacing:4px;
+}
+.stats {
+    gap:8px;
+}
+.stat-val {
+    font-size:18px;
+}
+}
+   </style>
+  </meta>
+ </head>
+ <body>
+  <div class="bg-grid">
+  </div>
+  <div class="bg-glow">
+  </div>
+  <div class="particles" id="particles">
+  </div>
+  <div class="lightning" id="lightning">
+  </div>
+  <div class="corner tl">
+  </div>
+  <div class="corner tr">
+  </div>
+  <div class="corner bl">
+  </div>
+  <div class="corner br">
+  </div>
+  <div class="ticker">
+   <div class="ticker-inner" id="ticker-inner">
+   </div>
+  </div>
+  <div class="wrap">
+   <div class="card" id="loginPage">
+    <div style="text-align:center;margin-bottom:18px;">
+     <div class="badge">
+      <div class="badge-dot">
+      </div>
+      SISTEMA ATIVO
+     </div>
+    </div>
+    <div class="logo">
+     <div class="logo-title" data-text="LOGIN">
+      LOGIN
+     </div>
+     <div class="logo-sub">
+      CENTRAL PRIVADA — ACESSO RESTRITO
+     </div>
+    </div>
+    <div class="divider">
+    </div>
+    <div class="inputBox">
+     <label>
+      <svg fill="none" height="12" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24" width="12">
+       <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2">
+       </path>
+       <circle cx="12" cy="7" r="4">
+       </circle>
+      </svg>
+      USUÁRIO
+     </label>
+     <input autocomplete="off" id="usuario" placeholder="Digite seu usuário" spellcheck="false" type="text"/>
+    </div>
+    <div class="inputBox" style="position:relative;">
+     <label>
+      <svg fill="none" height="12" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24" width="12">
+       <rect height="11" rx="2" width="18" x="3" y="11">
+       </rect>
+       <path d="M7 11V7a5 5 0 0 1 10 0v4">
+       </path>
+      </svg>
+      SENHA
+     </label>
+     <input autocomplete="off" id="senha" oninput="updateStrength(this.value)" placeholder="Digite sua senha" type="password"/>
+     <span class="eye-toggle" onclick="toggleEye()">
+      <svg fill="none" height="18" id="eyeIcon" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24" width="18">
+       <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z">
+       </path>
+       <circle cx="12" cy="12" r="3">
+       </circle>
+      </svg>
+     </span>
+     <div class="strength">
+      <div class="strength-bar" id="sb1">
+      </div>
+      <div class="strength-bar" id="sb2">
+      </div>
+      <div class="strength-bar" id="sb3">
+      </div>
+      <div class="strength-bar" id="sb4">
+      </div>
+     </div>
+    </div>
+    <button class="btn" onclick="logar()">
+     ACESSAR
+    </button>
+    <div class="erro" id="erro">
+    </div>
+   </div>
+   <div class="card" id="painelPage">
+    <div style="text-align:center;margin-bottom:18px;">
+     <div class="badge">
+      <div class="badge-dot">
+      </div>
+      CONECTADO
+     </div>
+    </div>
+    <div class="logo">
+     <div class="logo-title" data-text="CENTRAL">
+      CENTRAL
+     </div>
+     <div class="logo-sub">
+      DENÚNCIAS WA — BAN EM ATÉ 24H
+     </div>
+    </div>
+    <div class="divider">
+    </div>
+    <div class="stats">
+     <div class="stat-box">
+      <div class="stat-val" id="statTotal">
+       0
+      </div>
+      <div class="stat-lbl">
+       ENVIADOS
+      </div>
+     </div>
+     <div class="stat-box">
+      <div class="stat-val" id="statSessao">
+       0
+      </div>
+      <div class="stat-lbl">
+       SESSÃO
+      </div>
+     </div>
+     <div class="stat-box">
+      <div class="stat-val">
+       24H
+      </div>
+      <div class="stat-lbl">
+       TEMPO BAN
+      </div>
+     </div>
+    </div>
+    <div class="inputBox">
+     <label>
+      <svg fill="none" height="12" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24" width="12">
+       <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.99 14a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.92 3h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z">
+       </path>
+      </svg>
+      NÚMERO ALVO
+     </label>
+     <input id="numero" oninput="formatPhone(this)" placeholder="+55 99 99999-9999" type="text"/>
+    </div>
+    <div class="inputBox">
+     <label>
+      <svg fill="none" height="12" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24" width="12">
+       <polyline points="22 12 18 12 15 21 9 3 6 12 2 12">
+       </polyline>
+      </svg>
+      QUANTIDADE DE DENÚNCIAS
+     </label>
+     <select id="quantidade">
+      <option value="">
+       — Selecione —
+      </option>
+      <option value="1000">
+       1.000 denúncias
+      </option>
+      <option value="2000">
+       2.000 denúncias
+      </option>
+      <option value="3000">
+       3.000 denúncias
+      </option>
+      <option value="4000">
+       4.000 denúncias
+      </option>
+      <option value="5000">
+       5.000 denúncias
+      </option>
+      <option value="6000">
+       6.000 denúncias
+      </option>
+      <option value="7000">
+       7.000 denúncias
+      </option>
+      <option value="8000">
+       8.000 denúncias
+      </option>
+      <option value="9000">
+       9.000 denúncias
+      </option>
+      <option value="10000">
+       10.000 denúncias
+      </option>
+     </select>
+    </div>
+    <button class="btn" id="btnEnviar" onclick="enviar()">
+     ENVIAR DENÚNCIAS
+    </button>
+    <div class="loading" id="loading">
+     <div class="loadingLabel">
+      PROCESSANDO
+     </div>
+     <div class="bar-wrap">
+      <div class="bar-fill" id="barFill">
+      </div>
+      <div class="bar-pct" id="barPct">
+       0%
+      </div>
+     </div>
+     <div class="bar-steps">
+      <div class="step" id="step1">
+       Autenticando alvo...
+      </div>
+      <div class="step" id="step2">
+       Coletando contas...
+      </div>
+      <div class="step" id="step3">
+       Disparando denúncias...
+      </div>
+      <div class="step" id="step4">
+       Finalizando operação...
+      </div>
+     </div>
+    </div>
+   </div>
+  </div>
+  <div class="overlay" id="overlay" onclick="closePopup()">
+  </div>
+  <div class="popup" id="popup">
+   <span class="popup-icon">
+    ✓
+   </span>
+   <div class="popup-title">
+    OPERAÇÃO CONCLUÍDA
+   </div>
+   <div class="popup-sub" id="popupSub">
+    denúncias enviadas com sucesso
+   </div>
+  </div>
+  <script>
+   (function() {
+    const w=document.getElementById('particles');
+    for(let i=0;
+    i<18;
+    i++) {
+        const s=document.createElement('span');
+        const z=Math.random()*5+3;
+        s.style.cssText=`width:${z}px;height:${z}px;left:${Math.random()*100}%;animation-duration:${Math.random()*14+8}s;animation-delay:${Math.random()*10}s;`;
+        w.appendChild(s);
+    }
+}
+)();
+(function() {
+    const w=document.getElementById('lightning');
+    [12,28,45,60,75,88].forEach(l=> {
+        const s=document.createElement('span');
+        const h=Math.random()*200+200;
+        s.style.cssText=`left:${l}%;top:${-10+Math.random()*-20}%;height:${h}px;transform:rotate(${(Math.random()-0.5)*30}deg);animation-duration:${Math.random()*4+3}s;animation-delay:${Math.random()*5}s;`;
+        w.appendChild(s);
+    }
+    );
+}
+)();
+(function() {
+    const items=['● SISTEMA ONLINE','● SERVIDORES ATIVOS: 47','● BANS HOJE: 2.847','● TAXA DE SUCESSO: 99.3%','● UPTIME: 99.98%','● CRIPTOGRAFIA: AES-256','● CONEXÃO SEGURA','● CENTRAL DENÚNCIAS WA','● OPERAÇÃO AUTORIZADA','● STATUS: OPERACIONAL'];
+    const t=items.join(' ');
+    const w=document.getElementById('ticker-inner');
+    w.textContent=t+' '+t;
+}
+)();
+let totalGlobal=parseInt(localStorage.getItem('totalGlobal')||'0');
+let sessaoCount=0;
+document.getElementById('statTotal').textContent=totalGlobal.toLocaleString('pt-BR');
+function animateCounter(el,target,duration=1500) {
+    const start=parseInt(el.textContent.replace(/\D/g,''))||0;
+    const st=performance.now();
+    function step(now) {
+        const e=now-st;
+        const p=Math.min(e/duration,1);
+        const ease=1-Math.pow(1-p,3);
+        el.textContent=Math.round(start+(target-start)*ease).toLocaleString('pt-BR');
+        if(p<1)requestAnimationFrame(step);
+    }
+    requestAnimationFrame(step);
+}
+let eyeOpen=false;
+function toggleEye() {
+    eyeOpen=!eyeOpen;
+    const i=document.getElementById('senha');
+    i.type=eyeOpen?'text':'password';
+    document.getElementById('eyeIcon').innerHTML=eyeOpen?'<path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/>':'<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>';
+}
+function updateStrength(val) {
+    const bars=[document.getElementById('sb1'),document.getElementById('sb2'),document.getElementById('sb3'),document.getElementById('sb4')];
+    bars.forEach((b,i)=>b.classList.toggle('active',val.length>i*2+1));
+}
+function formatPhone(inp) {
+    let v=inp.value.replace(/\D/g,'');
+    if(v.length>2)v='+'+v.slice(0,2)+' '+v.slice(2);
+    if(v.length>6)v=v.slice(0,6)+' '+v.slice(6);
+    if(v.length>15)v=v.slice(0,15);
+    inp.value=v;
+}
+function logar() {
+    const u=document.getElementById('usuario').value.trim();
+    const s=document.getElementById('senha').value;
+    const e=document.getElementById('erro');
+    if(!u||!s) {
+        e.textContent='⚠ PREENCHA TODOS OS CAMPOS';
+        shake(document.getElementById('loginPage'));
+        return;
+    }
+    if(u==='bjk250'&&s==='bjk250') {
+        e.textContent='';
+        const l=document.getElementById('loginPage');
+        l.style.opacity='0';
+        l.style.transform='scale(0.95)';
+        l.style.transition='all 0.4s';
+        setTimeout(()=> {
+            l.style.display='none';
+            const p=document.getElementById('painelPage');
+            p.style.display='block';
+            p.style.opacity='0';
+            p.style.transform='scale(1.03)';
+            p.style.transition='all 0.4s';
+            requestAnimationFrame(()=>requestAnimationFrame(()=> {
+                p.style.opacity='1';
+                p.style.transform='scale(1)';
             }
+            ));
         }
-
-        function renderCatalog(items) {
-            const grid = document.getElementById('catalog-grid');
-            grid.innerHTML = '';
-
-            if(!items || items.length === 0) {
-                grid.innerHTML = '<div class="col-span-full text-center text-zinc-500 py-12">Nenhum título encontrado.</div>';
-                return;
-            }
-
-            items.forEach(item => {
-                // Ignora se não for filme ou série, ou se não tiver capa
-                if ((item.media_type && item.media_type !== 'movie' && item.media_type !== 'tv') || !item.poster_path) return;
-                
-                const tipo = item.media_type || (item.title ? 'movie' : 'tv');
-                const titulo = item.title || item.name;
-
-                const card = document.createElement('div');
-                card.className = 'group cursor-pointer bg-zinc-950/60 rounded-xl overflow-hidden hover:scale-105 transition-all duration-300 relative border border-zinc-900 hover:border-cyan-500/40 shadow-md';
-                card.onclick = () => startStream(item, tipo);
-
-                card.innerHTML = `
-                    <div class="relative aspect-[2/3] w-full overflow-hidden">
-                        <img src="${IMG_URL + item.poster_path}" alt="${titulo}" class="w-full h-full object-cover group-hover:opacity-60 transition-all duration-300">
-                    </div>
-                    <div class="p-3 absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black via-black/95 to-transparent pt-8">
-                        <p class="text-xs font-bold text-zinc-200 truncate group-hover:text-cyan-400 transition-colors">${titulo}</p>
-                        <div class="flex items-center justify-between mt-1">
-                            <span class="text-[10px] text-zinc-400 font-medium">⭐ ${item.vote_average ? item.vote_average.toFixed(1) : '0.0'}</span>
-                            <span class="text-[9px] bg-cyan-950 text-cyan-400 px-1.5 py-0.5 rounded font-bold uppercase tracking-wider">${tipo === 'movie' ? 'Filme' : 'Série'}</span>
-                        </div>
-                    </div>
-                `;
-                grid.appendChild(card);
-            });
+        ,400);
+    }
+    else {
+        e.textContent='⚠ USUÁRIO OU SENHA INCORRETOS';
+        shake(document.getElementById('loginPage'));
+    }
+}
+function shake(el) {
+    el.style.animation='none';
+    el.style.transition='transform 0.05s';
+    const seq=[6,-6,5,-5,4,-3,2,-1,0];
+    let i=0;
+    const t=setInterval(()=> {
+        el.style.transform=`translateX(${seq[i]||0}px)`;
+        i++;
+        if(i>=seq.length) {
+            clearInterval(t);
+            el.style.transform='';
+            el.style.animation='cardPulse 4s ease-in-out infinite alternate';
         }
-
-        async function searchContent() {
-            const query = document.getElementById('search-input').value;
-            if (query.trim() === '') return;
-            
-            document.getElementById('section-heading').innerHTML = `<span class="w-2.5 h-6 bg-gradient-to-b from-cyan-400 to-purple-600 rounded-full"></span> Resultados para: ${query}`;
-            document.getElementById('back-catalog-btn').classList.remove('hidden');
-            
-            try {
-                // Busca multi-conteúdo (traz filmes e séries juntos)
-                const response = await fetch(`${TMDB_BASE_URL}/search/multi?api_key=${TMDB_API_KEY}&query=${encodeURIComponent(query)}&language=pt-BR`);
-                const data = await response.json();
-                renderCatalog(data.results);
-            } catch (error) {
-                console.error("Erro na busca:", error);
-            }
+    }
+    ,50);
+}
+function enviar() {
+    const n=document.getElementById('numero').value.trim();
+    const q=document.getElementById('quantidade').value;
+    if(!n||!q)return;
+    const btn=document.getElementById('btnEnviar');
+    btn.disabled=true;
+    btn.style.opacity='0.5';
+    const loading=document.getElementById('loading');
+    const bf=document.getElementById('barFill');
+    const bp=document.getElementById('barPct');
+    const steps=[document.getElementById('step1'),document.getElementById('step2'),document.getElementById('step3'),document.getElementById('step4')];
+    bf.style.animation='none';
+    bf.style.width='0%';
+    steps.forEach(s=>s.classList.remove('done'));
+    loading.style.display='block';
+    const totalMs=3000;
+    const stepMs=[totalMs*0.2,totalMs*0.45,totalMs*0.75,totalMs*0.95];
+    let start=null;
+    function frame(ts) {
+        if(!start)start=ts;
+        const elapsed=ts-start;
+        const pct=Math.min(elapsed/totalMs*100,100);
+        bf.style.width=pct+'%';
+        bp.textContent=Math.round(pct)+'%';
+        stepMs.forEach((threshold,i)=> {
+            if(elapsed>=threshold)steps[i].classList.add('done');
         }
-
-        function resetCatalog() {
-            document.getElementById('search-input').value = '';
-            document.getElementById('section-heading').innerHTML = `<span class="w-2.5 h-6 bg-gradient-to-b from-cyan-400 to-purple-600 rounded-full"></span> Filmes e Séries em Alta (PT-BR)`;
-            document.getElementById('back-catalog-btn').classList.add('hidden');
-            loadTrending();
-        }
-
-        async function startStream(item, tipo) {
-            itemAtual = item;
-            tipoAtual = tipo;
-            temporadaAtual = 1;
-            episodioAtual = 1;
-
-            const title = item.title || item.name;
-            document.getElementById('player-container').classList.remove('hidden');
-            document.getElementById('player-title').innerText = title;
-            document.getElementById('player-type').innerText = tipo === 'movie' ? '🎬 Filme Dublado' : '📺 Série Dublada';
-            
-            if (tipo === 'tv') {
-                document.getElementById('series-selector').classList.remove('hidden');
-                await loadSeriesDetails(item.id);
-            } else {
-                document.getElementById('series-selector').classList.add('hidden');
-                updatePlayerSource();
-            }
-            
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-        }
-
-        // Puxa as temporadas e episódios reais da série via TMDB
-        async function loadSeriesDetails(seriesId) {
-            try {
-                const response = await fetch(`${TMDB_BASE_URL}/tv/${seriesId}?api_key=${TMDB_API_KEY}&language=pt-BR`);
-                const data = await response.json();
-                
-                const seasonSelect = document.getElementById('season-select');
-                seasonSelect.innerHTML = '';
-                
-                // Filtra apenas temporadas reais (ignora especiais/temporada 0 se preferir)
-                const seasons = data.seasons.filter(s => s.season_number > 0);
-                if(seasons.length === 0 && data.seasons.length > 0) {
-                    seasons.push(data.seasons[0]); // fallback se só tiver temp 0
-                }
-
-                seasons.forEach(season => {
-                    const opt = document.createElement('option');
-                    opt.value = season.season_number;
-                    opt.innerText = season.name || `Temporada ${season.season_number}`;
-                    seasonSelect.appendChild(opt);
-                });
-
-                if(seasons.length > 0) {
-                    temporadaAtual = seasons[0].season_number;
-                    await loadEpisodes(seriesId, temporadaAtual);
-                }
-            } catch (error) {
-                console.error("Erro ao buscar detalhes da série:", error);
-            }
-        }
-
-        async function loadEpisodes(seriesId, seasonNumber) {
-            try {
-                const response = await fetch(`${TMDB_BASE_URL}/tv/${seriesId}/season/${seasonNumber}?api_key=${TMDB_API_KEY}&language=pt-BR`);
-                const data = await response.json();
-                
-                const epGrid = document.getElementById('episodes-grid');
-                epGrid.innerHTML = '';
-
-                data.episodes.forEach(ep => {
-                    const btn = document.createElement('button');
-                    btn.id = `ep-btn-${ep.episode_number}`;
-                    btn.className = `px-3 py-1.5 text-xs font-bold rounded-md border ${ep.episode_number === episodioAtual ? 'bg-purple-600 text-white border-purple-500' : 'bg-zinc-950 text-zinc-400 border-zinc-800 hover:text-white'}`;
-                    btn.innerText = `EP ${ep.episode_number}`;
-                    btn.onclick = () => selectEpisode(ep.episode_number);
-                    epGrid.appendChild(btn);
-                });
-
-                updatePlayerSource();
-            } catch (error) {
-                console.error("Erro ao buscar episódios:", error);
-            }
-        }
-
-        function onSeasonChange() {
-            temporadaAtual = document.getElementById('season-select').value;
-            episodioAtual = 1;
-            loadEpisodes(itemAtual.id, temporadaAtual);
-        }
-
-        function selectEpisode(epNumber) {
-            // Remove destaque do ep antigo
-            const oldBtn = document.getElementById(`ep-btn-${episodioAtual}`);
-            if(oldBtn) oldBtn.className = "px-3 py-1.5 text-xs font-bold rounded-md border bg-zinc-950 text-zinc-400 border-zinc-800 hover:text-white";
-            
-            episodioAtual = epNumber;
-            
-            // Adiciona destaque no novo ep
-            const newBtn = document.getElementById(`ep-btn-${episodioAtual}`);
-            if(newBtn) newBtn.className = "px-3 py-1.5 text-xs font-bold rounded-md border bg-purple-600 text-white border-purple-500";
-            
-            updatePlayerSource();
-        }
-
-        function updatePlayerSource() {
-            const iframe = document.getElementById('video-iframe');
-            if (!itemAtual) return;
-
-            if (tipoAtual === 'movie') {
-                iframe.src = `${SERVIDORES_FILME[servidorAtual]}${itemAtual.id}`;
-            } else {
-                // Passa o ID, a temporada e o episódio formatados para a URL de séries nacional
-                iframe.src = `${SERVIDORES_SERIE[servidorAtual]}${itemAtual.id}/${temporadaAtual}/${episodioAtual}`;
-            }
-        }
-
-        function changeServer(serverKey) {
-            servidorAtual = serverKey;
-            
-            ['servidor1', 'servidor2', 'servidor3'].forEach((key, idx) => {
-                const btn = document.getElementById(`btn-srv${idx+1}`);
-                if(key === serverKey) {
-                    btn.className = "px-4 py-2 text-xs font-bold rounded-lg bg-cyan-500 text-black transition-all duration-250 shadow-md";
-                } else {
-                    btn.className = "px-4 py-2 text-xs font-bold rounded-lg text-zinc-400 hover:text-white transition-all duration-250";
-                }
-            });
-
-            updatePlayerSource();
-        }
-
-        function closePlayer() {
-            itemAtual = null;
-            document.getElementById('video-iframe').src = '';
-            document.getElementById('player-container').classList.add('hidden');
-            document.getElementById('series-selector').classList.add('hidden');
-        }
-        
-        document.getElementById('search-input').addEventListener('keypress', function (e) {
-            if (e.key === 'Enter') searchContent();
-        });
-    </script>
-</body>
+        );
+        if(elapsed<totalMs)requestAnimationFrame(frame);
+        else done();
+    }
+    requestAnimationFrame(frame);
+    function done() {
+        loading.style.display='none';
+        btn.disabled=false;
+        btn.style.opacity='1';
+        const amount=parseInt(q);
+        totalGlobal+=amount;
+        sessaoCount+=amount;
+        localStorage.setItem('totalGlobal',totalGlobal);
+        animateCounter(document.getElementById('statTotal'),totalGlobal);
+        animateCounter(document.getElementById('statSessao'),sessaoCount);
+        document.getElementById('popupSub').textContent=amount.toLocaleString('pt-BR')+' denúncias enviadas com sucesso';
+        document.getElementById('overlay').classList.add('active');
+        document.getElementById('popup').classList.add('active');
+    }
+}
+function closePopup() {
+    document.getElementById('overlay').classList.remove('active');
+    document.getElementById('popup').classList.remove('active');
+}
+document.addEventListener('keydown',e=> {
+    if(e.key==='Enter') {
+        if(document.getElementById('loginPage').style.display!=='none')logar();
+        else enviar();
+    }
+    if(e.key==='Escape')closePopup();
+}
+);
+  </script>
+ </body>
 </html>
